@@ -134,14 +134,14 @@ errores inesperados no exponen detalles internos.
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T033 [P] [US3] Crear `backend/src/shared/domain/errors.ts` con `ValidationError` y `NotFoundError` (extienden `Error` y fijan `name`; sin lógica). Escribir el test de `toHttpError` en `backend/tests/unit/shared/infrastructure/http/errorHandler.test.ts` con estos casos:
+- [X] T033 [P] [US3] Crear `backend/src/shared/domain/errors.ts` con `ValidationError` y `NotFoundError` (extienden `Error` y fijan `name`; sin lógica). Escribir el test de `toHttpError` en `backend/tests/unit/shared/infrastructure/http/errorHandler.test.ts` con estos casos:
   - `ValidationError("x")` → `{ statusCode: 400, body: { error: { type: "VALIDATION_ERROR", message: "x" } } }`.
   - `NotFoundError("x")` → 404 `NOT_FOUND`.
   - Un error con `statusCode: 415` (como los de Fastify) → 415 `VALIDATION_ERROR`.
   - `new Error("detalle secreto")` → 500 `INTERNAL_ERROR` con el mensaje `"Error interno del servidor"`, sin "detalle secreto".
 
   Verificar que falla.
-- [ ] T034 [P] [US3] Test HTTP en `backend/tests/http/errors.test.ts`:
+- [X] T034 [P] [US3] Test HTTP en `backend/tests/http/errors.test.ts`:
   - `GET /no-existe` → 404 con `{"error":{"type":"NOT_FOUND","message":"Ruta GET /no-existe no encontrada"}}`.
   - Una ruta de prueba, registrada en `app.server` dentro del test, que lanza `new Error("detalle secreto")` → 500 sin "detalle secreto" en el body.
   - Una ruta de prueba con `adaptRoute` y un controller cuyo `respond` recibe `Either.left(new ValidationError("dato inválido"))` → 400 `VALIDATION_ERROR`.
@@ -150,13 +150,13 @@ errores inesperados no exponen detalles internos.
 
 ### Implementation for User Story 3
 
-- [ ] T035 [US3] Implementar `backend/src/shared/infrastructure/http/errorHandler.ts`:
+- [X] T035 [US3] Implementar `backend/src/shared/infrastructure/http/errorHandler.ts`:
   - La función pura `toHttpError(error: unknown)` aplica el mapeo de research.md §9.
   - `registerErrorHandlers(server: FastifyInstance)` usa `setErrorHandler`: registra el error completo con `request.log.error(error)` cuando el status es 500 y responde con `toHttpError`.
   - También usa `setNotFoundHandler` para responder 404 `NOT_FOUND` con el mensaje `Ruta <MÉTODO> <url> no encontrada`.
 
   T033 en verde.
-- [ ] T036 [US3] Llamar a `registerErrorHandlers(this.server)` en el constructor de `backend/src/main/App.ts`, antes de registrar las rutas. T034 en verde.
+- [X] T036 [US3] Llamar a `registerErrorHandlers(this.server)` en el constructor de `backend/src/main/App.ts`, antes de registrar las rutas. T034 en verde.
 - [ ] T037 [US3] Verificación manual siguiendo quickstart.md paso 7 (`curl.exe -i http://localhost:3000/no-existe`).
 
 **Checkpoint**: las tres historias funcionan. `npm test` y `npm run typecheck` en verde.
