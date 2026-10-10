@@ -170,7 +170,7 @@ errores inesperados no exponen detalles internos.
 - [X] T038 Revisar que no haya `any` en `backend/src` ni en `backend/tests` (`git grep -nE ":\s*any\b|<any>|as any" backend`), que no queden tests salteados (`.skip`/`.only`) y que no haya código muerto ni comentado.
 - [X] T039 [P] Crear `README.md` en la raíz con requisitos (Docker Desktop, Node 24), cómo levantar el entorno (resumen de quickstart.md), los scripts (`dev`, `test`, `test:watch`, `typecheck`), la estructura de carpetas con los agregados al árbol de la consigna y su justificación (plan.md, Complexity Tracking), y una sección "Limitaciones conocidas" vacía para completar.
 - [X] T040 [P] Actualizar `USO-DE-IA.md` con la etapa 3 (implementación del 001): qué generó la IA, qué se corrigió y qué se aprendió (en palabras del autor).
-- [ ] T041 Recorrer completo `specs/001-base-del-proyecto/quickstart.md` desde un estado limpio (`docker compose down`, borrar `backend/node_modules` y `backend/.env`) y confirmar los criterios SC-001 a SC-006 del spec.
+- [X] T041 Recorrer completo `specs/001-base-del-proyecto/quickstart.md` desde un estado limpio (`docker compose down`, borrar `backend/node_modules` y `backend/.env`) y confirmar los criterios SC-001 a SC-006 del spec.
 
 ---
 
