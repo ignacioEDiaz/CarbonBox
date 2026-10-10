@@ -49,6 +49,24 @@ abajo.
   - Se aclaró que "de punta a punta antes que perfecto" decide el alcance, no la calidad: no
     sirve de excusa para saltear tests ni para meter lógica en un controller.
 
+### 2. Spec 001: base del proyecto (spec y plan)
+
+- **Qué hizo la IA:** redactó el spec (qué y por qué, sin tecnología) y el plan (stack,
+  decisiones con alternativas, contrato de `/health`, guía de validación). Antes de escribir
+  el plan armó un proyecto descartable para comprobar que las versiones elegidas funcionan
+  juntas, incluido un `SELECT 1` contra Postgres en Docker.
+- **Qué detectó al verificar (y no hubiera visto leyendo documentación):**
+  - El tag `latest` de Prisma en npm apuntaba a una release candidate (8.0.0-rc), así que se
+    fijó la 7.10.0 estable.
+  - En modo `strict`, Awilix rechaza que un singleton dependa de algo registrado con una vida
+    más corta: los valores fijos van con `asValue`.
+- **Qué cambié yo:** la IA propuso Vitest como runner de tests y le pedí usar **Jest** para
+  hacer TDD. Al verificarlo aparecieron dos problemas que obligaron a ajustar el plan:
+  - `ts-jest` no soporta TypeScript 7, así que se bajó a TypeScript 6.0.3.
+  - Con `module: nodenext`, `ts-jest` pide `isolatedModules`, y en ese modo deja de chequear
+    tipos: un test con un error de tipos pasaba en verde. Se pasó a `module: commonjs` +
+    `moduleResolution: bundler`, y ahora un error de tipos hace fallar el test.
+
 ## ¿Qué Generé con IA?
 
 ### Backend
@@ -64,6 +82,9 @@ abajo.
 
 1. **Principio de código mínimo:** reformulado de "menos líneas" a "legible y mínimo" (ver
    bitácora, etapa 1).
+2. **Runner de tests:** la IA propuso Vitest y lo cambié por Jest. Eso obligó a bajar a
+   TypeScript 6 y a ajustar el `tsconfig` para que los tests sigan chequeando tipos (ver
+   bitácora, etapa 2).
 
 ## ¿Qué Aprendí?
 
