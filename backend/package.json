@@ -8,8 +8,8 @@
   },
   "scripts": {
     "dev": "tsx watch src/main/index.ts",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "node --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules --disable-warning=ExperimentalWarning node_modules/jest/bin/jest.js --watch",
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate"
   },
