@@ -46,6 +46,15 @@ probaron juntos en un proyecto descartable, incluido un `SELECT 1` contra
     de tipos hace fallar el test, no solo `tsc`. Verificado en la prueba: un
     `const n: number = "a"` hizo fallar la suite con `TS2322`.
   - Soporta *parameter properties* y `jest.fn()` sin configuración extra (verificado).
+- **Ajuste descubierto al implementar (T026):** `fastify.inject()` carga
+  `light-my-request`, que hace `require` de `cookie@2`, un paquete ESM puro. Node 24 lo
+  resuelve solo, pero el runtime de módulos de Jest 30 lo soporta únicamente si existe
+  `vm.SourceTextModule`, que Node expone con `--experimental-vm-modules`. Por eso los
+  scripts corren `node --experimental-vm-modules --disable-warning=ExperimentalWarning
+  node_modules/jest/bin/jest.js`. Se llama a Node directamente para que funcione igual en
+  PowerShell y en bash. Alternativas descartadas: transformar `cookie` con
+  `transformIgnorePatterns` (más configuración y frágil) o forzar `cookie@1` con `overrides`
+  (cambia una dependencia interna de Fastify).
 - **Alternativas:**
   - `@swc/jest` (permite quedarse en TS 7, pero compila sin chequear tipos y suma un binario
     nativo, `@swc/core`).

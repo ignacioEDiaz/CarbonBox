@@ -1,5 +1,8 @@
-import { asValue, AwilixContainer, createContainer, InjectionMode } from "awilix";
+import { asClass, asValue, AwilixContainer, createContainer, InjectionMode } from "awilix";
 import { IConvictProps } from "../config/IConvictProps";
+import { GetHealthQueryHandler } from "../health/application/GetHealthQueryHandler";
+import { PrismaDatabaseHealthChecker } from "../health/infrastructure/PrismaDatabaseHealthChecker";
+import { HealthController } from "../health/presentation/HealthController";
 import { createPrismaClient } from "../shared/infrastructure/persistence/createPrismaClient";
 
 // CLASSIC: Awilix inyecta según el nombre del parámetro del constructor.
@@ -10,6 +13,10 @@ export function buildContainer(config: IConvictProps): AwilixContainer {
   container.register({
     config: asValue(config),
     prismaClient: asValue(createPrismaClient(config.database.url)),
+
+    databaseHealthChecker: asClass(PrismaDatabaseHealthChecker).singleton(),
+    getHealthQueryHandler: asClass(GetHealthQueryHandler).singleton(),
+    healthController: asClass(HealthController).singleton(),
   });
 
   return container;
