@@ -67,12 +67,39 @@ abajo.
     tipos: un test con un error de tipos pasaba en verde. Se pasó a `module: commonjs` +
     `moduleResolution: bundler`, y ahora un error de tipos hace fallar el test.
 
+### 3. Spec 001: implementación
+
+- **Qué hizo la IA:** escribió el código y los tests siguiendo `tasks.md` con TDD: primero el
+  test, verlo fallar y después la implementación. Hizo un commit atómico por cada par test +
+  código y verificó a mano contra Postgres real lo que no cubren los tests (base caída, base
+  colgada con timeout, persistencia, configuración inválida y puerto ocupado).
+- **Qué decidí yo:**
+  - Frenar en el checkpoint de la Fase 2 para revisar el código antes de seguir.
+  - Cuando quise pasar al spec 002, la IA me recordó que el 001 estaba a la mitad y que mi
+    constitución dice "un spec por vez". Elegí terminar el 001 primero.
+- **Problemas que aparecieron y cómo se resolvieron:**
+  - Los tests HTTP con `fastify.inject` fallaban: Fastify depende de `cookie@2`, un paquete
+    ESM puro, y Jest solo puede cargarlo si Node corre con `--experimental-vm-modules`. La IA
+    leyó el código de Jest para entender la condición exacta y cambió el script de tests
+    (documentado en research.md §3).
+  - Un test del controller llamaba a `handle(request)` cuando la firma no recibe parámetros.
+    El chequeo de tipos de `ts-jest` lo detectó y se simplificó el test.
+- **Preguntas que hice para entender el código:**
+  - De dónde sale `Either`.
+  - Qué se gana sin `try/catch` en los controllers.
+  - En qué momento se usan los archivos de `application` y de `infrastructure`.
+
 ## ¿Qué Generé con IA?
 
 ### Backend
 
 - [x] Configuración de Spec Kit y constitución del proyecto
-- [ ] _(se completa a medida que avancen los specs)_
+- [x] Specs, planes y tareas (revisados y ajustados por mí)
+- [x] `docker-compose.yml` con PostgreSQL
+- [x] Piezas compartidas: `Either`, contratos de handlers, `BaseController`, `adaptRoute` y
+  manejador central de errores
+- [x] Configuración con Convict, contenedor de Awilix y arranque
+- [x] Health check (`GET /health`) y todos los tests del spec 001
 
 ### Frontend
 
@@ -91,10 +118,21 @@ abajo.
 1. **Spec-Driven Development:**
    - _(completar con tus palabras: qué es la constitución, por qué el spec no habla de
      tecnología, para qué sirve separar spec, plan y tasks)_
+2. **Either y manejo de errores:**
+   - _(completar con tus palabras: por qué los errores esperables viajan como valor y por
+     qué los controllers no tienen try/catch)_
+3. **Capas e inversión de dependencias:**
+   - _(completar con tus palabras: por qué el handler depende de `IDatabaseHealthChecker` y
+     no de Prisma, y qué hace el contenedor de Awilix al arrancar)_
 
 ## Limitaciones Encontradas con IA
 
-- _(completar a medida que aparezcan)_
+- **Las versiones "latest" no siempre son estables ni compatibles.** La primera propuesta
+  (TypeScript 7 y Vitest) cambió al verificarla: Prisma tenía una RC como `latest` y
+  `ts-jest` no soporta TypeScript 7. Sirvió que la IA probara las combinaciones en un
+  proyecto descartable antes de escribir el plan.
+- **Problemas que solo aparecen al ejecutar.** La incompatibilidad de Jest con un paquete ESM
+  de Fastify no estaba prevista en el plan y apareció recién con el primer test HTTP.
 
 ## Tiempo Invertido
 
