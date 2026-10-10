@@ -21,3 +21,6 @@ Thumbs.db
 
 # Configuración local de Claude Code (puede tener permisos o tokens propios)
 .claude/settings.local.json
+
+# Cliente generado por Prisma (se regenera con npm install)
+backend/src/generated/
