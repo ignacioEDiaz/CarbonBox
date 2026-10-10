@@ -113,11 +113,11 @@ el mensaje dice qué valor es, sin mostrar secretos.
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T029 [P] [US2] Ampliar `backend/tests/unit/config/config.test.ts`: `loadConfig` sin `DATABASE_URL` lanza un error cuyo mensaje contiene `database.url`; con `DATABASE_URL=""` también; con `PORT: "abc"` lanza un error cuyo mensaje contiene `port`; y cuando falla por `PORT` con una `DATABASE_URL` válida que contiene la contraseña `secreta`, el mensaje NO contiene `secreta`. Verificar que fallan.
+- [X] T029 [P] [US2] Ampliar `backend/tests/unit/config/config.test.ts`: `loadConfig` sin `DATABASE_URL` lanza un error cuyo mensaje contiene `database.url`; con `DATABASE_URL=""` también; con `PORT: "abc"` lanza un error cuyo mensaje contiene `port`; y cuando falla por `PORT` con una `DATABASE_URL` válida que contiene la contraseña `secreta`, el mensaje NO contiene `secreta`. Verificar que fallan.
 
 ### Implementation for User Story 2
 
-- [ ] T030 [US2] En `backend/src/config/index.ts`, agregar con `convict.addFormat` un formato `required-string` que rechaza valores que no son string o están vacíos, y usarlo en `database.url` (default `""`). T029 en verde.
+- [X] T030 [US2] En `backend/src/config/index.ts`, agregar con `convict.addFormat` un formato `required-string` que rechaza valores que no son string o están vacíos, y usarlo en `database.url` (default `""`). T029 en verde.
 - [ ] T031 [US2] En `backend/src/main/index.ts`, capturar el error de `loadConfig()` y terminar con `process.exit(1)` después de imprimir `Configuración inválida:` seguido del mensaje de Convict. Capturar el error `EADDRINUSE` de `listen` e imprimir `El puerto <port> ya está en uso` antes de `process.exit(1)`. Es el único lugar con `try/catch` y no es un controller: es el arranque del proceso.
 - [ ] T032 [US2] Verificación manual siguiendo quickstart.md pasos 2 y 6: arranque con `.env` copiado de `.env.example`; sin `DATABASE_URL`; con `PORT=abc`; con el puerto ocupado. Restaurar `.env` al terminar.
 
