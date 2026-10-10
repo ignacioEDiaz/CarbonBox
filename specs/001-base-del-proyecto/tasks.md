@@ -58,8 +58,8 @@ configuración (camino feliz), cliente Prisma, contenedor y arranque.
 
 **⚠️ CRITICAL**: ninguna historia puede empezar hasta terminar esta fase.
 
-- [ ] T008 [P] Test de `Either` en `backend/tests/unit/shared/domain/Either.test.ts`: `Either.right(5)` cumple `isRight() === true`, `isLeft() === false` y `value === 5`; `Either.left(new Error("x"))` cumple `isLeft() === true` y `value` es ese error. Correr `npm test` y verificar que falla.
-- [ ] T009 Implementar `backend/src/shared/domain/Either.ts` según data-model.md: clases `Left` y `Right` con `readonly value` y los type guards `isLeft()`/`isRight()`, el tipo `Either<L, R> = Left<L, R> | Right<L, R>` y el objeto `Either` con `left()` y `right()`. T008 en verde.
+- [X] T008 [P] Test de `Either` en `backend/tests/unit/shared/domain/Either.test.ts`: `Either.right(5)` cumple `isRight() === true`, `isLeft() === false` y `value === 5`; `Either.left(new Error("x"))` cumple `isLeft() === true` y `value` es ese error. Correr `npm test` y verificar que falla.
+- [X] T009 Implementar `backend/src/shared/domain/Either.ts` según data-model.md: clases `Left` y `Right` con `readonly value` y los type guards `isLeft()`/`isRight()`, el tipo `Either<L, R> = Left<L, R> | Right<L, R>` y el objeto `Either` con `left()` y `right()`. T008 en verde.
 - [ ] T010 [P] Crear `backend/src/shared/application/ICommandHandler.ts` e `IQueryHandler.ts` con `execute(command|query): Promise<Either<Error, TResult>>`, tal como en data-model.md. Son solo interfaces, no llevan test.
 - [ ] T011 [P] Crear `backend/src/shared/infrastructure/http/IHttpRequest.ts` (`params`, `query` y `body`, los tres `unknown`) e `IHttpResponse.ts` (`statusCode: number`, `body: unknown`).
 - [ ] T012 Test de `BaseController` en `backend/tests/unit/shared/infrastructure/http/BaseController.test.ts`, usando una subclase de prueba: `respond(Either.right(x))` devuelve `{ statusCode: 200, body: x }`; `respond(Either.right(x), 201)` devuelve `statusCode: 201`; `respond(Either.left(error))` lanza ese mismo error. Verificar que falla.
