@@ -35,16 +35,16 @@ verde.
 **Purpose**: LocalStack en Docker con la cola y los buckets, dependencias nuevas y variables
 de entorno.
 
-- [ ] T001 [P] Crear `.gitattributes` en la raíz con `*.sh text eol=lf`, y `localstack/ready.d/init-aws.sh` con `#!/bin/bash`, `set -euo pipefail` y tres líneas: `awslocal sqs create-queue --queue-name uploads`, `awslocal s3 mb s3://carbonbox-uploads` y `awslocal s3 mb s3://carbonbox-uploads-test` (research §2).
-- [ ] T002 Agregar a `docker-compose.yml` el servicio `localstack`:
+- [X] T001 [P] Crear `.gitattributes` en la raíz con `*.sh text eol=lf`, y `localstack/ready.d/init-aws.sh` con `#!/bin/bash`, `set -euo pipefail` y tres líneas: `awslocal sqs create-queue --queue-name uploads`, `awslocal s3 mb s3://carbonbox-uploads` y `awslocal s3 mb s3://carbonbox-uploads-test` (research §2).
+- [X] T002 Agregar a `docker-compose.yml` el servicio `localstack`:
   - `image: localstack/localstack:4.14.0` (comentario: última versión sin token, research §1).
   - `environment: SERVICES: s3,sqs`, `ports: "4566:4566"`.
   - `volumes: ./localstack/ready.d:/etc/localstack/init/ready.d`.
   - `healthcheck` con `curl -sf http://localhost:4566/_localstack/init/ready | grep -q '"completed": true'`, `interval: 5s`, `retries: 20`.
 
   Verificar: `docker compose up -d --wait` deja `postgres` y `localstack` en `Healthy`, y `docker compose exec localstack awslocal sqs list-queues` y `awslocal s3 ls` muestran la cola y los dos buckets.
-- [ ] T003 [P] En `backend/` instalar con versión exacta: `npm install --save-exact @aws-sdk/client-sqs@3.1141.0 @aws-sdk/client-s3@3.1141.0 @fastify/multipart@10.1.2`. Verificar que `npm run test:unit` sigue en verde.
-- [ ] T004 [P] Agregar a `backend/.env.example` (y al `backend/.env` local, no versionado) las variables de data-model.md: `AWS_REGION=us-east-1`, `AWS_ENDPOINT_URL=http://localhost:4566`, `AWS_ACCESS_KEY_ID=test`, `AWS_SECRET_ACCESS_KEY=test`, `S3_BUCKET=carbonbox-uploads`, `SQS_QUEUE_URL=http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/uploads`, `SQS_VISIBILITY_TIMEOUT_SECONDS=60`, `UPLOAD_MAX_FILE_SIZE_MB=10` y `TEST_S3_BUCKET=carbonbox-uploads-test`, con un comentario que diga qué cambiar para AWS real.
+- [X] T003 [P] En `backend/` instalar con versión exacta: `npm install --save-exact @aws-sdk/client-sqs@3.1141.0 @aws-sdk/client-s3@3.1141.0 @fastify/multipart@10.1.2`. Verificar que `npm run test:unit` sigue en verde.
+- [X] T004 [P] Agregar a `backend/.env.example` (y al `backend/.env` local, no versionado) las variables de data-model.md: `AWS_REGION=us-east-1`, `AWS_ENDPOINT_URL=http://localhost:4566`, `AWS_ACCESS_KEY_ID=test`, `AWS_SECRET_ACCESS_KEY=test`, `S3_BUCKET=carbonbox-uploads`, `SQS_QUEUE_URL=http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/uploads`, `SQS_VISIBILITY_TIMEOUT_SECONDS=60`, `UPLOAD_MAX_FILE_SIZE_MB=10` y `TEST_S3_BUCKET=carbonbox-uploads-test`, con un comentario que diga qué cambiar para AWS real.
 
 ---
 
