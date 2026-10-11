@@ -33,8 +33,8 @@ verde.
 
 **Purpose**: scripts de migraciones y de tests, y la base de tests configurada.
 
-- [ ] T001 Agregar `TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/document_processing_test` a `backend/.env.example` y la misma línea al `backend/.env` local (no versionado).
-- [ ] T002 Convertir `backend/jest.config.js` en dos `projects`:
+- [X] T001 Agregar `TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/document_processing_test` a `backend/.env.example` y la misma línea al `backend/.env` local (no versionado).
+- [X] T002 Convertir `backend/jest.config.js` en dos `projects`:
   - `unit`: `displayName: "unit"`, `preset: "ts-jest"`, `testEnvironment: "node"` y `roots: ["<rootDir>/tests/unit", "<rootDir>/tests/http"]`.
   - `integration`: `displayName: "integration"`, mismo preset y entorno, `roots: ["<rootDir>/tests/integration"]`, `setupFiles: ["dotenv/config"]` y `globalSetup: "<rootDir>/tests/integration/globalSetup.ts"`.
 
