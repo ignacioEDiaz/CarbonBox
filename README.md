@@ -14,20 +14,21 @@ cada parte tiene su spec, su plan y sus tareas en [`specs/`](specs/), y todas re
 |---|---|---|
 | [001-base-del-proyecto](specs/001-base-del-proyecto/) | Postgres en Docker, servicio Fastify, `/health`, configuración, piezas compartidas | ✅ Completo |
 | [002-dominio-y-persistencia](specs/002-dominio-y-persistencia/) | Entidades `Upload` y `ActivityData`, estados, schema, migración y repositorios | ✅ Completo |
-| 003 a 007 | Subida, parseo, worker, consultas, frontend | Pendiente |
+| [003-subir-archivo](specs/003-subir-archivo/) | Subida de CSV a S3, upload en PENDING, aviso en SQS (LocalStack), consulta por id | ✅ Completo |
+| 004 a 007 | Parseo, worker, consultas, frontend | Pendiente |
 
 ## Requisitos
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) corriendo.
 - Node.js 24 o superior.
-- El puerto 5432 libre para Postgres y el 3000 para la API.
+- Los puertos 5432 (Postgres), 4566 (LocalStack) y 3000 (API) libres.
 
 ## Cómo levantarlo
 
 Desde la raíz del repositorio (PowerShell o bash):
 
 ```bash
-docker compose up -d --wait        # PostgreSQL 15, espera a que esté listo
+docker compose up -d --wait        # PostgreSQL 15 y LocalStack (S3 + SQS), espera a que estén listos
 cd backend
 cp .env.example .env               # en PowerShell: Copy-Item .env.example .env
 npm install                        # también genera el cliente de Prisma
@@ -40,16 +41,23 @@ Comprobar que todo responde:
 ```bash
 curl http://localhost:3000/health
 # {"service":"up","database":"up"}
+
+curl -F "file=@datos.csv" http://localhost:3000/api/v1/uploads
+# 202 {"id":"...","status":"PENDING","fileName":"datos.csv","createdAt":"..."}
 ```
 
 La guía completa de verificación, incluida la base caída, la persistencia y los errores de
-configuración, está en los quickstart de cada spec: [001](specs/001-base-del-proyecto/quickstart.md) y
-[002](specs/002-dominio-y-persistencia/quickstart.md).
+configuración, está en los quickstart de cada spec: [001](specs/001-base-del-proyecto/quickstart.md),
+[002](specs/002-dominio-y-persistencia/quickstart.md) y [003](specs/003-subir-archivo/quickstart.md).
 
 ## S3 y SQS: LocalStack en local, AWS después
 
 Los archivos van a S3 y los avisos de procesamiento a SQS. En local, los dos corren en
-[LocalStack](https://www.localstack.cloud/) dentro de Docker. El código usa el SDK oficial de
+[LocalStack](https://www.localstack.cloud/) dentro de Docker, fijado en la versión **4.14.0**:
+desde la 2026.03.0, `localstack/localstack:latest` exige una cuenta y un token de LocalStack,
+y la 4.14.0 es la última que arranca sin ellos. Así cualquiera que clone el repositorio lo
+levanta con un comando. El script [`localstack/ready.d/init-aws.sh`](localstack/ready.d/init-aws.sh)
+crea la cola y los buckets al arrancar. El código usa el SDK oficial de
 AWS y es el mismo en los dos casos: lo único que cambia es la configuración.
 
 ### Pasar de LocalStack a AWS
@@ -87,7 +95,7 @@ cuál falta.
 | `npm run dev` | Corre la API con recarga automática (`tsx watch`) |
 | `npm test` | Corre todos los tests (unitarios, HTTP y de integración) |
 | `npm run test:unit` | Solo unitarios y HTTP: no necesita Docker |
-| `npm run test:integration` | Repositorios contra la base de tests `document_processing_test` (necesita Docker). La crea y la migra sola |
+| `npm run test:integration` | Repositorios, S3, SQS y la subida completa contra la base de tests `document_processing_test` y LocalStack (necesita Docker). La base se crea y se migra sola |
 | `npm run test:watch` | Tests en modo watch, para el ciclo de TDD |
 | `npm run typecheck` | Chequea tipos con `tsc` sin generar archivos |
 | `npm run db:deploy` | Aplica las migraciones existentes (lo que corre quien clona el repo) |
@@ -98,6 +106,16 @@ cuál falta.
 | Método | Endpoint | Respuesta |
 |---|---|---|
 | GET | `/health` | `200 {"service":"up","database":"up"}`; `503` si la base no responde |
+| POST | `/api/v1/uploads` | `202 { id, status, fileName, createdAt }`. Multipart con el archivo en `file`; header opcional `Idempotency-Key` |
+| GET | `/api/v1/uploads/:id` | `200 { id, status, fileName, totalRows, processedRows, failedRows, errorMessage, createdAt, updatedAt }`; `404` si no existe |
+
+La subida solo valida lo instantáneo: que haya archivo, que no esté vacío, que pese hasta
+10 MB, que termine en `.csv` y que la primera línea sea `category,amount,unit,date`. Las filas
+se validan después, en el worker. El orden es guardar el archivo en S3, registrar el upload en
+la base y recién después publicar el aviso en SQS: así el worker nunca recibe el id de un
+upload que todavía no existe (la consigna los lista al revés). Si no se puede publicar, el
+upload queda FAILED con "No se pudo encolar el archivo para procesarlo" y la API responde 500.
+Contrato completo: [http-api.md](specs/003-subir-archivo/contracts/http-api.md).
 
 Todos los errores comparten el formato `{ "error": { "type", "message" } }`: ver el
 [contrato](specs/001-base-del-proyecto/contracts/http-api.md).
@@ -116,9 +134,10 @@ controllers:
 
 ```text
 PENDING ──► PROCESSING ──► COMPLETED
-               │  ▲
-               │  └── reintento (el worker se cayó y el mensaje volvió a la cola)
-               └────► FAILED
+   │           │  ▲
+   │           │  └── reintento (el worker se cayó y el mensaje volvió a la cola)
+   │           └────► FAILED
+   └── no se pudo encolar ──► FAILED
 ```
 
 COMPLETED y FAILED son finales. Guardar las filas de un upload **reemplaza** las de un intento
@@ -155,6 +174,10 @@ Se respeta el árbol de carpetas de la consigna. Estos son los agregados y por q
 | `status` como enum de Postgres (la consigna usa `String`) | La base rechaza estados inválidos |
 | `date` como `DATE` (`@db.Date`) | Es un día, no un instante: no se corre por zona horaria |
 | Índice en `ActivityData.uploadId` | Leer y reemplazar las filas de un upload es la operación más frecuente |
+| `Upload.idempotencyKey` con índice único | Un reintento de la subida con el mismo header `Idempotency-Key` no crea un segundo upload, aunque lleguen dos a la vez |
+| `CsvHeader` e `IdempotencyKey` en `domain/value-objects/` | Reglas del negocio: el encabezado lo comparten la subida y el parser (spec 004) |
+| `shared/infrastructure/aws/createAwsClients.ts` | Un solo lugar arma los clientes de S3 y SQS (LocalStack o AWS según el endpoint) |
+| `localstack/ready.d/` y `.gitattributes` | Crean la cola y los buckets al arrancar; el `.sh` necesita fin de línea LF aunque se clone en Windows |
 
 Las decisiones técnicas, con sus alternativas descartadas, están en
 [research.md](specs/001-base-del-proyecto/research.md).
@@ -167,6 +190,19 @@ Las decisiones técnicas, con sus alternativas descartadas, están en
   aplicó. Ninguna procesa datos que envía el usuario: `fast-glob` solo lo usa
   `loadModules` de Awilix (no se usa), y `deepmerge-ts` y `mysql2` son parte de la CLI de
   Prisma (se usa PostgreSQL).
+- **LocalStack 4.14.0 no recibe parches de seguridad.** Es un emulador que solo escucha en
+  `localhost` mientras se desarrolla; en producción se usan S3 y SQS reales.
+- **LocalStack no guarda nada entre reinicios** (la persistencia es paga). Al reiniciar el
+  contenedor se pierden los archivos y los mensajes, y un upload que quedó en PENDING apunta a
+  un archivo que ya no existe. Es solo del entorno local.
+- **Si fallan a la vez la cola y la base**, el upload no se puede marcar FAILED y queda en
+  PENDING sin aviso. La solución estándar es el patrón *outbox*: guardar el upload y el aviso
+  pendiente en la misma transacción y que otro proceso lo publique.
+- **Archivos huérfanos en S3:** si falla registrar el upload después de subir el archivo, o
+  pierde una carrera de `Idempotency-Key`, el archivo queda sin upload. En producción los
+  limpiaría una *lifecycle policy* del bucket.
+- **El error de archivo demasiado grande (413) llega en inglés** (`request file too large`):
+  lo genera Fastify y el manejador central lo pasa tal cual.
 - **Los tests corren con `--experimental-vm-modules`.** `fastify.inject` depende de un paquete
   ESM puro (`cookie@2`) y Jest 30 solo puede cargarlo con esa bandera de Node (ver
   [research.md §3](specs/001-base-del-proyecto/research.md)).
