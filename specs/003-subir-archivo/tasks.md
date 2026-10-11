@@ -95,11 +95,11 @@ en SQS. Los rechazos no dejan nada. Si no se puede encolar, el upload queda FAIL
 
   Verificar que fallan.
 - [X] T013 [US1] En `DP/domain/value-objects/UploadStatus.ts`, `PENDING: ["PROCESSING", "FAILED"]` con el comentario `// FAILED: no se pudo encolar (spec 003)`. T012 en verde.
-- [ ] T014 [P] [US1] Test de `CsvHeader` en `backend/tests/unit/document-processing/domain/value-objects/CsvHeader.test.ts` (FR-003, escenarios 10 y 11, data-model.md):
+- [X] T014 [P] [US1] Test de `CsvHeader` en `backend/tests/unit/document-processing/domain/value-objects/CsvHeader.test.ts` (FR-003, escenarios 10 y 11, data-model.md):
   - Acepta `category,amount,unit,date\n...`, con `\r\n`, con BOM inicial, con `Category, Amount ,UNIT,date` y un archivo que es solo el encabezado sin salto final.
   - Rechaza con `ValidationError`: columnas en otro orden, una de menos, una de más, otro nombre (`fecha,monto`), una fila de datos como primera línea, bytes binarios y más de 1024 bytes sin `\n`.
   - El mensaje contiene `"category,amount,unit,date"` y lo recibido, recortado a 100 caracteres.
-- [ ] T015 [US1] Implementar `DP/domain/value-objects/CsvHeader.ts` según research §8: `EXPECTED_CSV_COLUMNS`, extiende `ValueObject<readonly string[]>`, constructor privado, `static fromContent(content: Uint8Array): Either<ValidationError, CsvHeader>`. Usa `TextDecoder`, no `Buffer`. T014 en verde.
+- [X] T015 [US1] Implementar `DP/domain/value-objects/CsvHeader.ts` según research §8: `EXPECTED_CSV_COLUMNS`, extiende `ValueObject<string>` (el encabezado normalizado), constructor privado, `static fromContent(content: Uint8Array): Either<ValidationError, CsvHeader>`. Usa `TextDecoder`, no `Buffer`. T014 en verde.
 - [ ] T016 [P] [US1] Test de integración `backend/tests/integration/document-processing/S3FileStorage.test.ts`, contra el bucket `TEST_S3_BUCKET`:
   - `save` devuelve una ubicación que cumple `/^uploads\/[0-9a-f-]{36}\.csv$/`.
   - `read(save(x))` devuelve exactamente los bytes de `x`, con BOM, `\r\n` y `ñ`.

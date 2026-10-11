@@ -32,7 +32,9 @@ PENDING ──┴──► PROCESSING ──┬──► COMPLETED   FAILED
 ```ts
 export const EXPECTED_CSV_COLUMNS = ["category", "amount", "unit", "date"] as const;
 
-export class CsvHeader extends ValueObject<readonly string[]> {
+// El valor es el encabezado normalizado ("category,amount,unit,date"). Es un string y no un
+// array porque ValueObject.equals compara con ===, y dos arrays iguales no son ===.
+export class CsvHeader extends ValueObject<string> {
   static fromContent(content: Uint8Array): Either<ValidationError, CsvHeader>;
 }
 ```
