@@ -53,7 +53,7 @@ integración.
 - [X] T004 [P] Test de `ValueObject` en `backend/tests/unit/shared/domain/ValueObject.test.ts` con una subclase de prueba: `value` devuelve lo que se pasó; `equals` da `true` para dos instancias con el mismo valor y `false` para valores distintos. Verificar que falla.
 - [X] T005 Implementar `backend/src/shared/domain/ValueObject.ts`: clase abstracta `ValueObject<T>` con `protected constructor(readonly value: T)` y `equals(other: ValueObject<T>): boolean`, que compara `value`. T004 en verde.
 - [X] T006 [P] Crear `backend/src/shared/domain/AggregateRoot.ts`: clase abstracta con `protected constructor(readonly id: string)`. Sin lógica, sin test.
-- [ ] T007 Completar `DP/infrastructure/persistence/models/schema.prisma` según data-model.md:
+- [X] T007 Completar `DP/infrastructure/persistence/models/schema.prisma` según data-model.md:
   - `enum UploadStatus { PENDING PROCESSING COMPLETED FAILED }`.
   - `model Upload`: los campos de la consigna, con `status UploadStatus` y la relación `activityData ActivityData[]`.
   - `model ActivityData`: los campos de la consigna, con `date DateTime @db.Date`, la relación con `Upload` y `@@index([uploadId])`.
