@@ -119,10 +119,13 @@ no sea final.
   en PROCESSING para siempre.
 - **005:** el visibility timeout tiene que ser más largo que el procesamiento,
   para que dos workers no tomen el mismo upload a la vez.
-- **005 (pendiente de decidir con el autor):** qué estado toma un upload si
-  todas las filas son inválidas (`COMPLETED` con 0 procesadas o `FAILED`), y
-  dónde se guardan los errores por fila que devuelve el parser (hoy `Upload`
-  solo tiene `errorMessage`).
+- **005 (decidido por el autor):** si ninguna fila es válida, el upload termina
+  `FAILED` ("Ninguna de las N filas es válida: revisá los errores por fila").
+  Los errores por fila se guardan en una tabla nueva `RowError` (`uploadId`,
+  `line`, `message`) con `IRowErrorRepository.saveForUpload` (reemplaza, como
+  `ActivityData`), y se leen con su propia query: `GetUploadRowErrorsQuery` +
+  handler + `GET /api/v1/uploads/:id/errors` → `{ data: [{ line, message }] }`.
+  Diseño completo en Miro, frame 7 del tablero del backend.
 - **005:** el handler usa `ICsvParserService` (registrado como
   `csvParserService`). Un `Left` del parser es un error de negocio (marca FAILED
   con ese mensaje y borra el mensaje); `totalRows`, `validRows.length` y
