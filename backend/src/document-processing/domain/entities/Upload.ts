@@ -3,6 +3,7 @@ import { AggregateRoot } from "../../../shared/domain/AggregateRoot";
 import { Either } from "../../../shared/domain/Either";
 import { ValidationError } from "../../../shared/domain/errors";
 import { FileName } from "../value-objects/FileName";
+import { IdempotencyKey } from "../value-objects/IdempotencyKey";
 import { UploadStatus } from "../value-objects/UploadStatus";
 
 export type UploadProps = {
@@ -30,14 +31,8 @@ type NewUpload = {
   fileName: FileName;
   fileUrl: string;
   userId: string;
-  idempotencyKey?: string | null; // la manda el cliente para no crear dos uploads al reintentar
+  idempotencyKey?: IdempotencyKey | null; // la manda el cliente para no crear dos uploads al reintentar
 };
-
-const MAX_IDEMPOTENCY_KEY_LENGTH = 255;
-
-function isValidIdempotencyKey(key: string): boolean {
-  return key.trim() !== "" && key.length <= MAX_IDEMPOTENCY_KEY_LENGTH;
-}
 
 function areValidCounts({ totalRows, processedRows, failedRows }: RowCounts): boolean {
   const counts = [totalRows, processedRows, failedRows];
@@ -56,11 +51,6 @@ export class Upload extends AggregateRoot {
     if (fileUrl.trim() === "") {
       return Either.left(new ValidationError("La ubicación del archivo no puede estar vacía"));
     }
-    if (idempotencyKey !== null && !isValidIdempotencyKey(idempotencyKey)) {
-      return Either.left(
-        new ValidationError(`La clave de idempotencia debe tener entre 1 y ${MAX_IDEMPOTENCY_KEY_LENGTH} caracteres`),
-      );
-    }
     const now = new Date();
     return Either.right(
       new Upload({
@@ -73,7 +63,7 @@ export class Upload extends AggregateRoot {
         processedRows: null,
         failedRows: null,
         errorMessage: null,
-        idempotencyKey,
+        idempotencyKey: idempotencyKey?.value ?? null,
         createdAt: now,
         updatedAt: now,
       }),

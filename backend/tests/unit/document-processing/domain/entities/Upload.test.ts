@@ -1,5 +1,6 @@
 import { Upload } from "../../../../../src/document-processing/domain/entities/Upload";
 import { FileName } from "../../../../../src/document-processing/domain/value-objects/FileName";
+import { IdempotencyKey } from "../../../../../src/document-processing/domain/value-objects/IdempotencyKey";
 import { UploadStatus } from "../../../../../src/document-processing/domain/value-objects/UploadStatus";
 import { ValidationError } from "../../../../../src/shared/domain/errors";
 
@@ -65,32 +66,22 @@ describe("Upload.create", () => {
 });
 
 describe("Upload.create: clave de idempotencia (opcional)", () => {
-  const create = (idempotencyKey?: string | null) =>
-    Upload.create({ fileName: validFileName(), fileUrl: "uploads/datos.csv", userId: "user-123", idempotencyKey });
-
   it("sin clave, queda en null", () => {
     expect(newUpload().idempotencyKey).toBeNull();
   });
 
-  it("guarda la clave que manda el cliente", () => {
-    const result = create("abc-123");
+  it("guarda la clave ya validada que manda el cliente", () => {
+    const key = IdempotencyKey.create("abc-123");
+    if (key.isLeft()) throw key.value;
+
+    const result = Upload.create({
+      fileName: validFileName(),
+      fileUrl: "uploads/datos.csv",
+      userId: "user-123",
+      idempotencyKey: key.value,
+    });
 
     expect(result.isRight() && result.value.idempotencyKey).toBe("abc-123");
-  });
-
-  it("acepta una clave de 255 caracteres", () => {
-    expect(create("k".repeat(255)).isRight()).toBe(true);
-  });
-
-  it.each([
-    { label: "vacía", key: "" },
-    { label: "con solo espacios", key: "   " },
-    { label: "de 256 caracteres", key: "k".repeat(256) },
-  ])("rechaza una clave $label", ({ key }) => {
-    const result = create(key);
-
-    expect(result.isLeft()).toBe(true);
-    expect(result.value).toBeInstanceOf(ValidationError);
   });
 });
 

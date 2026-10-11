@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Upload } from "../../../src/document-processing/domain/entities/Upload";
 import { FileName } from "../../../src/document-processing/domain/value-objects/FileName";
+import { IdempotencyKey } from "../../../src/document-processing/domain/value-objects/IdempotencyKey";
 import { UploadStatus } from "../../../src/document-processing/domain/value-objects/UploadStatus";
 import { PrismaUploadRepository } from "../../../src/document-processing/infrastructure/persistence/repositories/PrismaUploadRepository";
 import { DuplicateIdempotencyKeyError } from "../../../src/shared/domain/errors";
@@ -96,10 +97,17 @@ describe("PrismaUploadRepository", () => {
 });
 
 describe("PrismaUploadRepository: clave de idempotencia", () => {
-  function uploadWithKey(idempotencyKey: string): Upload {
+  function uploadWithKey(rawKey: string): Upload {
     const fileName = FileName.create("datos.csv");
+    const idempotencyKey = IdempotencyKey.create(rawKey);
     if (fileName.isLeft()) throw fileName.value;
-    const upload = Upload.create({ fileName: fileName.value, fileUrl: "uploads/datos.csv", userId: "user-123", idempotencyKey });
+    if (idempotencyKey.isLeft()) throw idempotencyKey.value;
+    const upload = Upload.create({
+      fileName: fileName.value,
+      fileUrl: "uploads/datos.csv",
+      userId: "user-123",
+      idempotencyKey: idempotencyKey.value,
+    });
     if (upload.isLeft()) throw upload.value;
     return upload.value;
   }
