@@ -100,12 +100,12 @@ en SQS. Los rechazos no dejan nada. Si no se puede encolar, el upload queda FAIL
   - Rechaza con `ValidationError`: columnas en otro orden, una de menos, una de más, otro nombre (`fecha,monto`), una fila de datos como primera línea, bytes binarios y más de 1024 bytes sin `\n`.
   - El mensaje contiene `"category,amount,unit,date"` y lo recibido, recortado a 100 caracteres.
 - [X] T015 [US1] Implementar `DP/domain/value-objects/CsvHeader.ts` según research §8: `EXPECTED_CSV_COLUMNS`, extiende `ValueObject<string>` (el encabezado normalizado), constructor privado, `static fromContent(content: Uint8Array): Either<ValidationError, CsvHeader>`. Usa `TextDecoder`, no `Buffer`. T014 en verde.
-- [ ] T016 [P] [US1] Test de integración `backend/tests/integration/document-processing/S3FileStorage.test.ts`, contra el bucket `TEST_S3_BUCKET`:
+- [X] T016 [P] [US1] Test de integración `backend/tests/integration/document-processing/S3FileStorage.test.ts`, contra el bucket `TEST_S3_BUCKET`:
   - `save` devuelve una ubicación que cumple `/^uploads\/[0-9a-f-]{36}\.csv$/`.
   - `read(save(x))` devuelve exactamente los bytes de `x`, con BOM, `\r\n` y `ñ`.
   - Dos `save` del mismo contenido dan ubicaciones distintas.
   - `read` de una ubicación inexistente rechaza.
-- [ ] T017 [US1] Implementar `DP/infrastructure/storage/S3FileStorage.ts` (research §5): constructor `(s3Client: S3Client, config: IConvictProps)`; `save` hace `PutObject` en `uploads/<randomUUID()>.csv` con `ContentType: "text/csv"`; `read` hace `GetObject` y devuelve `Buffer.from(await Body.transformToByteArray())`. T016 en verde.
+- [X] T017 [US1] Implementar `DP/infrastructure/storage/S3FileStorage.ts` (research §5): constructor `(s3Client: S3Client, config: IConvictProps)`; `save` hace `PutObject` en `uploads/<randomUUID()>.csv` con `ContentType: "text/csv"`; `read` hace `GetObject` y devuelve `Buffer.from(await Body.transformToByteArray())`. T016 en verde.
 - [ ] T018 [P] [US1] Test de integración `backend/tests/integration/document-processing/SqsMessagePublisher.test.ts`, con una cola propia de `createTestQueue()`: después de `publish({ uploadId: "abc" })`, un `ReceiveMessage` directo con el SDK trae un mensaje cuyo `Body` es `{"uploadId":"abc"}`.
 - [ ] T019 [US1] Implementar `DP/infrastructure/messaging/SqsMessagePublisher.ts`: constructor `(sqsClient: SQSClient, config: IConvictProps)`; `publish` hace `SendMessage` a `config.queue.url` con `JSON.stringify(body)`. T018 en verde.
 - [ ] T020 [P] [US1] Test de `CreateUploadCommandHandler` en `backend/tests/unit/document-processing/application/commands/CreateUploadCommandHandler.test.ts`, con los dobles de `tests/support/` (escenarios de US1 y data-model.md, "Pasos de execute"):
