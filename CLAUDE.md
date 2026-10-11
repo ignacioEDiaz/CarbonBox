@@ -119,6 +119,17 @@ no sea final.
   en PROCESSING para siempre.
 - **005:** el visibility timeout tiene que ser más largo que el procesamiento,
   para que dos workers no tomen el mismo upload a la vez.
+- **005 (decidido por el autor):** si ninguna fila es válida, el upload termina
+  `FAILED` ("Ninguna de las N filas es válida: revisá los errores por fila").
+  Los errores por fila se guardan en una tabla nueva `RowError` (`uploadId`,
+  `line`, `message`) con `IRowErrorRepository.saveForUpload` (reemplaza, como
+  `ActivityData`), y se leen con su propia query: `GetUploadRowErrorsQuery` +
+  handler + `GET /api/v1/uploads/:id/errors` → `{ data: [{ line, message }] }`.
+  Diseño completo en Miro, frame 7 del tablero del backend.
+- **005:** el handler usa `ICsvParserService` (registrado como
+  `csvParserService`). Un `Left` del parser es un error de negocio (marca FAILED
+  con ese mensaje y borra el mensaje); `totalRows`, `validRows.length` y
+  `rowErrors.length` van a `Upload.markAsCompleted`.
 
 ## Validaciones del CSV
 
@@ -127,6 +138,12 @@ no sea final.
 - `date` debe ser una fecha válida en formato `YYYY-MM-DD` (ojo:
   `new Date("2024-02-31")` no falla; validar de verdad).
 - `category` y `unit` no pueden estar vacíos.
+
+Implementado en el spec 004 (`CsvParserService`, con `csv-parse` 7.0.3):
+UTF-8 obligatorio, separador coma, comillas según el estándar, `amount` estricto
+(`/^\d+(\.\d+)?$/`: sin coma decimal, notación científica ni signos), un solo
+motivo por fila y la línea donde empieza cada fila. Las reglas de la fila viven
+en `ActivityData` y las del encabezado en `CsvHeader`: no duplicarlas.
 
 ## Endpoints
 

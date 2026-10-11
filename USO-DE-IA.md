@@ -170,6 +170,63 @@ abajo.
     reglas; la fila de Prisma no es la entidad).
   - Si convenía el patrón State para los estados.
   - Cómo se testeó el spec 002.
+- **Diagramas para estudiar:** le pedí a la IA diagramas en Miro de lo que estaba hecho. El
+  primero del recorrido de la subida tenía una explicación muy escueta y no usaba el estilo de
+  los anteriores; le pedí rehacerlo como si se lo explicara a alguien que no conoce el
+  proyecto: mapa con colores por capa, glosario y cada paso con qué pasa, qué datos viajan
+  (con un ejemplo de punta a punta) y por qué se hizo así.
+
+### 6. Spec 004: parseo y validación del CSV (spec y plan)
+
+- **Qué hizo la IA:** propuso el alcance (el parser solo lee y clasifica; cambiar estados y
+  guardar es del 005), redactó el spec y el plan, y antes de escribir el plan probó la
+  biblioteca en una carpeta aparte.
+- **Decisiones mías:**
+  - **Usar una biblioteca (`csv-parse`) y no `split(",")` a mano.** Con `split`, una fila
+    correcta con una coma entre comillas (`"Oficina, piso 2"`) se marcaría como inválida.
+  - **Cantidad en formato estricto** (`1200` o `12.5`). Descarté aceptar coma decimal porque
+    `1,200` es ambiguo y en un CSV la coma ya separa columnas.
+- **Qué descubrimos al probar la biblioteca antes de planificar** (no lo hubiera adivinado):
+  - **Con saltos de línea de Windows (`\r\n`), los números de línea se corrían.** Se resolvió
+    pasando `\r\n` a `\n` antes de parsear. (La causa exacta se corrigió en la implementación:
+    ver abajo.)
+  - **Los tipos de `csv-parse` mienten con la opción `raw`:** el tipo dice lista de textos pero
+    llega un objeto. Por eso la línea de cada fila se calcula con el callback `on_record`, que
+    sí está bien tipado, y no hace falta ningún `any` ni `as`.
+  - **Con una comilla sin cerrar, la biblioteca informa la última línea del archivo**, no la de
+    la comilla. El mensaje dice "después de la línea N" (la última fila que se leyó bien), y
+    ajusté el spec para que diga eso.
+  - **`Number()` no alcanza para validar la cantidad:** `Number("")` es 0 y `Number("1e3")` es
+    1000. Se valida primero con una expresión regular.
+  - 10 MB (unas 235 mil filas) se parsean en menos de 1 segundo: no hacen falta streams.
+- **Lo que quedó para el 005:** qué estado toma un upload si todas las filas son inválidas y
+  dónde se guardan los errores por fila.
+
+### 7. Spec 004: implementación
+
+- **Qué hizo la IA:** implementó `CsvParserService` y su interfaz con TDD, en tres pasos (filas
+  válidas e inválidas, errores de archivo, formato estándar): 48 tests del parser y el test de
+  10 MB. Actualizó README, CLAUDE.md y el quickstart.
+- **Qué se corrigió o descubrió en el camino:**
+  - **Un test desmintió la investigación.** En el plan se había anotado que con `\r\n` las
+    líneas se corrían por las líneas en blanco. El test de `\r\n` con líneas en blanco pasó sin
+    arreglar nada: la causa real era un `\r\n` **dentro de un valor entre comillas** (una fila
+    de varias líneas), que la biblioteca cuenta doble. En la prueba original estaban las dos
+    cosas juntas. Se corrigió el research; la solución (normalizar a `\n`) era la misma.
+  - **`instanceof TypeError` fallaba solo en los tests.** Jest corre el código en un contexto
+    aislado y el `TypeError` que lanza `TextDecoder` no es el mismo objeto que el del test. Se
+    reconoce el error por su código de Node (`ERR_ENCODING_INVALID_ENCODED_DATA`), el mismo
+    patrón que ya usa el manejador central de errores.
+  - **El script de prueba manual de la guía no corría en Windows y no daba error:** `npx` es un
+    `.cmd` y `cmd.exe` corta el argumento en el primer salto de línea. Se dejó en una sola línea
+    y se verificó la salida.
+  - **Un script de Python que usó la IA para editar dos archivos les cambió los fines de línea**
+    (en Windows escribe `\r\n`). Se notó porque el diff mostraba 90 líneas cambiadas por agregar
+    3, y se corrigió antes del commit.
+  - **Errores de la IA al escribir los tests**, que el propio test mostró: armar el CSV de 10 MB
+    con `csv(...lines)` pasaba 260 mil argumentos y desbordaba la pila; y correr `npx jest`
+    directo hace fallar los tests HTTP porque no agrega `--experimental-vm-modules` (hay que
+    usar `npm run test:unit`).
 
 ## ¿Qué Generé con IA?
 
@@ -187,6 +244,8 @@ abajo.
 - [x] LocalStack en Docker, contratos de storage y mensajería, implementaciones con S3 y SQS,
   subida y consulta de uploads, encabezado del CSV y clave de idempotencia (spec 003), con sus
   tests unitarios, HTTP y de integración contra LocalStack
+- [x] Parser del CSV (`CsvParserService` con `csv-parse`, spec 004) y sus tests unitarios
+- [x] Diagramas del backend en Miro (para estudiar el código)
 
 ### Frontend
 
