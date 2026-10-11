@@ -39,7 +39,7 @@ verde.
   - `integration`: `displayName: "integration"`, mismo preset y entorno, `roots: ["<rootDir>/tests/integration"]`, `setupFiles: ["dotenv/config"]` y `globalSetup: "<rootDir>/tests/integration/globalSetup.ts"`.
 
   En `backend/package.json` agregar los scripts `test:unit` (el mismo comando que `test` + `--selectProjects unit`) y `test:integration` (+ `--selectProjects integration`). Verificar que `npm run test:unit` sigue en 24/24 verde.
-- [ ] T003 [P] En `backend/prisma.config.ts` agregar `migrations: { path: "src/document-processing/infrastructure/persistence/models/migrations" }`. En `backend/package.json` agregar los scripts `db:migrate` (`prisma generate && prisma migrate dev`: `generate` va primero para que `npm run db:migrate -- --name x` le pase el nombre a `migrate dev`) y `db:deploy` (`prisma migrate deploy`).
+- [X] T003 [P] En `backend/prisma.config.ts` agregar `migrations: { path: "src/document-processing/infrastructure/persistence/models/migrations" }`. En `backend/package.json` agregar los scripts `db:migrate` (`prisma generate && prisma migrate dev`: `generate` va primero para que `npm run db:migrate -- --name x` le pase el nombre a `migrate dev`) y `db:deploy` (`prisma migrate deploy`).
 
 ---
 
