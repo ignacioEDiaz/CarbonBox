@@ -122,6 +122,55 @@ abajo.
   - La IA sacó un ternario anidado que ella misma había escrito en un test, porque iba contra
     la regla de legibilidad de la constitución.
 
+### 5. Spec 003: subir archivo
+
+- **Qué hizo la IA:** redactó el spec, el plan y las tareas, y lo implementó con TDD:
+  contratos `IFileStorage`, `IMessagePublisher` e `IMessageConsumer`; `S3FileStorage`,
+  `SqsMessagePublisher` y `SqsMessageConsumer` con el SDK de AWS; el value object `CsvHeader`;
+  `CreateUploadCommandHandler` y `GetUploadByIdQueryHandler` con sus controllers;
+  `POST /api/v1/uploads` y `GET /api/v1/uploads/:id`; y la clave de idempotencia.
+- **Decisiones mías:**
+  - **Interfaces para pasar a AWS sin tocar código.** Le pedí que todo quedara detrás de
+    contratos para trabajar en local y conectar mi cuenta de AWS después.
+  - **LocalStack y no una tabla de Postgres como cola.** Con LocalStack el código es el mismo
+    que con AWS real y solo cambia el endpoint; con una tabla habría que programar a mano el
+    ocultamiento y el contador de entregas, y después tirarlo.
+  - **Si no se puede encolar, el upload queda FAILED** (opción B de tres). Para eso agregamos
+    la transición PENDING → FAILED: ningún upload queda en PENDING para siempre.
+  - **La API revisa el encabezado del CSV** (solo la primera línea). Fue un punto medio que
+    pedí: avisa al instante si subí el archivo equivocado, sin parsear las filas.
+  - **El patrón State para los estados:** lo evaluamos y no lo usé. Con 4 estados y un
+    comportamiento que solo cambia en qué transiciones se permiten, la tabla es más simple.
+- **Qué se corrigió o descubrió en el camino:**
+  - **Otra sesión de Claude Code abierta en paralelo** reescribió el spec y generó un plan con
+    disco y Postgres que yo no había elegido. Lo detecté al ver los archivos cambiados, lo
+    descarté y regeneré el plan con mis decisiones. Aprendí a no tener dos agentes sobre los
+    mismos archivos.
+  - **LocalStack exige token desde marzo de 2026.** Antes de escribir el plan la IA lo
+    investigó y lo probó en un contenedor descartable: la 4.14.0 es la última que arranca sin
+    cuenta. Quedó fijada en esa versión, para que quien evalúe lo levante sin registrarse.
+  - **La prueba mostró que SQS estándar solo garantiza orden aproximado y entrega "al menos una
+    vez"**, así que se ajustó el spec: lo que protege de duplicados es la idempotencia del 002.
+    También mostró que LocalStack revisa el vencimiento cada ~1 s, y los tests preguntan en un
+    bucle en vez de dormir un tiempo fijo.
+  - **Un commit se hizo con dos tests fallando:** la IA verificaba con un `grep` del resumen
+    y la cadena de comandos siguió igual. Eran tests de la cola que hacían polling 5 s con el
+    timeout por defecto de Jest (5 s). Se les dio un timeout propio y desde ahí se verifica
+    con el código de salida de Jest.
+  - **La clave de idempotencia se validaba tarde:** al principio vivía en `Upload.create`, que
+    corre después de subir el archivo, así que una clave inválida dejaba un archivo huérfano.
+    Se pasó a un value object (`IdempotencyKey`) que el handler valida al principio.
+  - **`prisma migrate dev` no corre desde un agente** (terminal no interactiva). La migración
+    se generó con `prisma migrate diff` y se aplicó con `migrate deploy`.
+  - **Con `adapter-pg`, Prisma informa el índice violado en otro lugar** (`meta.driverAdapterError`
+    y no `meta.target`). La IA lo comprobó con un script antes de escribir la traducción del
+    error.
+- **Preguntas que hice para entender el código:**
+  - Por qué `Upload` es una entidad (identidad propia, cambia en el tiempo y protege sus
+    reglas; la fila de Prisma no es la entidad).
+  - Si convenía el patrón State para los estados.
+  - Cómo se testeó el spec 002.
+
 ## ¿Qué Generé con IA?
 
 ### Backend
@@ -135,6 +184,9 @@ abajo.
 - [x] Health check (`GET /health`) y todos los tests del spec 001
 - [x] Schema de Prisma, migración inicial, value objects, entidades, mappers y repositorios
   (spec 002), con sus tests unitarios y de integración
+- [x] LocalStack en Docker, contratos de storage y mensajería, implementaciones con S3 y SQS,
+  subida y consulta de uploads, encabezado del CSV y clave de idempotencia (spec 003), con sus
+  tests unitarios, HTTP y de integración contra LocalStack
 
 ### Frontend
 
