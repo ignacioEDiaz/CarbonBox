@@ -17,7 +17,9 @@ export class FileName extends ValueObject<string> {
       return Either.left(new ValidationError("El nombre del archivo no puede estar vacío"));
     }
     if (!CSV_FILE_NAME.test(name)) {
-      return Either.left(new ValidationError(`El archivo "${name}" debe ser un .csv con nombre (por ejemplo, datos.csv)`));
+      return Either.left(
+        new ValidationError(`El archivo "${name}" debe ser un .csv con nombre (por ejemplo, datos.csv)`),
+      );
     }
     return Either.right(new FileName(name));
   }

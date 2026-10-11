@@ -18,6 +18,7 @@ export default function globalSetup(): void {
     });
   } catch (error) {
     const detail = error instanceof Error && "stderr" in error ? String(error.stderr) : String(error);
-    throw new Error(`No se pudo preparar la base de tests. ¿Está levantada? (docker compose up -d --wait)\n${detail}`);
+    const hint = "¿Está levantada? (docker compose up -d --wait)";
+    throw new Error(`No se pudo preparar la base de tests. ${hint}\n${detail}`);
   }
 }

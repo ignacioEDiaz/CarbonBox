@@ -197,7 +197,7 @@ y se leen por upload.
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T030 Revisar que no haya `any`, casts con `as`, `.skip`/`.only` ni código comentado en `backend/src` y `backend/tests` (`git grep`, como en el 001), y que `domain` no importe Prisma (`git grep -n "prisma" backend/src/document-processing/domain` vacío).
+- [X] T030 Revisar que no haya `any`, casts con `as`, `.skip`/`.only` ni código comentado en `backend/src` y `backend/tests` (`git grep`, como en el 001), y que `domain` no importe Prisma (`git grep -n "prisma" backend/src/document-processing/domain` vacío).
 - [ ] T031 [P] Actualizar `README.md`:
   - Estado: el 002 completo.
   - "Cómo levantarlo": agregar `npm run db:deploy`.
