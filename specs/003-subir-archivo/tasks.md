@@ -115,7 +115,7 @@ en SQS. Los rechazos no dejan nada. Si no se puede encolar, el upload queda FAIL
   - Dos subidas de `datos.csv` crean dos uploads con ubicaciones distintas.
   - Con `FailingMessagePublisher`: `execute` rechaza con el mismo error de la cola, y el upload del repositorio queda FAILED con `errorMessage` `"No se pudo encolar el archivo para procesarlo"`.
 - [X] T021 [US1] Implementar `DP/application/commands/objects/CreateUploadCommand.ts` (con el tipo `UploadedFile`) y `DP/application/commands/handlers/CreateUploadCommandHandler.ts` según data-model.md: implementa `ICommandHandler<CreateUploadCommand, UploadReceipt>`, recibe `fileStorage`, `uploadRepository` y `messagePublisher` por constructor (interfaces), sigue los pasos 1 a 8 en orden, y el camino FAILED vive en un método privado con el único `try/catch` (research §10). T020 en verde.
-- [ ] T022 [US1] Soporte multipart:
+- [X] T022 [US1] Soporte multipart:
   - `SI/http/IHttpRequest.ts`: agregar `IHttpFile { fileName: string; content: Buffer }`, `headers: unknown` y `file?: IHttpFile`.
   - `SI/http/adaptRoute.ts`: pasar `headers`; si `request.isMultipart()`, tomar `await request.file()` y, si existe, `{ fileName: part.filename, content: await part.toBuffer() }`. Sin `try/catch`.
   - `backend/src/main/App.ts`: registrar `@fastify/multipart` con `limits: { fileSize: config.upload.maxFileSizeMb * 1024 * 1024, files: 1 }`, antes de las rutas.
