@@ -135,7 +135,7 @@ integración.
 
   Usa el tipo `Upload` generado por Prisma para el registro, sin base. Verificar que falla.
 - [X] T017 [US2] Implementar `DP/infrastructure/persistence/mappers/PrismaUploadMapper.ts` con `static toDomain(record)` (vía `Upload.restore`, con `FileName` y `UploadStatus.from`) y `static toPersistence(upload)`. Sin `as`. T016 en verde.
-- [ ] T018 [US2] Test de integración en `backend/tests/integration/document-processing/PrismaUploadRepository.test.ts`, usando `createTestPrismaClient()`:
+- [X] T018 [US2] Test de integración en `backend/tests/integration/document-processing/PrismaUploadRepository.test.ts`, usando `createTestPrismaClient()`:
   - guardar y leer da los mismos valores;
   - PENDING → PROCESSING, guardar y leer: el estado es PROCESSING y `updatedAt > createdAt`;
   - COMPLETED con conteos se lee con esos conteos;
@@ -143,7 +143,7 @@ integración.
   - a un upload leído en COMPLETED, `markAsProcessing()` le devuelve `left`.
 
   Verificar que falla.
-- [ ] T019 [US2] Implementar `DP/infrastructure/persistence/repositories/PrismaUploadRepository.ts`: implementa `IUploadRepository` y recibe `prismaClient` por constructor. `save` usa `upsert` por `id` con el mapper; `findById` usa `findUnique` y el mapper, o devuelve `null`. T018 en verde.
+- [X] T019 [US2] Implementar `DP/infrastructure/persistence/repositories/PrismaUploadRepository.ts`: implementa `IUploadRepository` y recibe `prismaClient` por constructor. `save` usa `upsert` por `id` con el mapper; `findById` usa `findUnique` y el mapper, o devuelve `null`. T018 en verde.
 - [ ] T020 [US2] Test del contenedor en `backend/tests/unit/main/container.test.ts`: `buildContainer(config).resolve("uploadRepository")` es instancia de `PrismaUploadRepository`. No necesita base, porque la conexión es perezosa. Verificar que falla.
 - [ ] T021 [US2] Crear `DP/infrastructure/dependency-injection/DocumentProcessingModule.ts` con `registerDocumentProcessingModule(container: AwilixContainer)`, que registra `uploadRepository: asClass(PrismaUploadRepository).singleton()`, y llamarla desde `backend/src/main/container.ts`. T020 en verde.
 
