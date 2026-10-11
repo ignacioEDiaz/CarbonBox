@@ -80,14 +80,14 @@ integración.
 
 > Cada test se escribe PRIMERO y se verifica que FALLA antes de implementar.
 
-- [ ] T009 [P] [US1] Test de `FileName` en `backend/tests/unit/document-processing/domain/value-objects/FileName.test.ts`:
+- [X] T009 [P] [US1] Test de `FileName` en `backend/tests/unit/document-processing/domain/value-objects/FileName.test.ts`:
   - Se aceptan `"datos.csv"`, `"DATOS.CSV"` y `"  datos.csv  "` (este último queda como `"datos.csv"`).
   - Se rechazan con `ValidationError` `""`, `"   "`, `"datos.txt"`, `"datos"` y `".csv"`.
-- [ ] T010 [US1] Implementar `DP/domain/value-objects/FileName.ts`: extiende `ValueObject<string>`, con constructor privado y `static create(raw: string): Either<ValidationError, FileName>`. Recorta el nombre, exige "no vacío", `/\.csv$/i` y al menos un carácter antes de `.csv`. Mensajes en español. T009 en verde.
-- [ ] T011 [P] [US1] Test de `UploadStatus` en `backend/tests/unit/document-processing/domain/value-objects/UploadStatus.test.ts`:
+- [X] T010 [US1] Implementar `DP/domain/value-objects/FileName.ts`: extiende `ValueObject<string>`, con constructor privado y `static create(raw: string): Either<ValidationError, FileName>`. Recorta el nombre, exige "no vacío", `/\.csv$/i` y al menos un carácter antes de `.csv`. Mensajes en español. T009 en verde.
+- [X] T011 [P] [US1] Test de `UploadStatus` en `backend/tests/unit/document-processing/domain/value-objects/UploadStatus.test.ts`:
   - Recorre la matriz completa de 4×4 de data-model.md con `canTransitionTo` y verifica cada una de las 16 combinaciones, incluida PROCESSING → PROCESSING permitida.
   - `UploadStatus.from("COMPLETED").equals(UploadStatus.COMPLETED)` es `true`.
-- [ ] T012 [US1] Implementar `DP/domain/value-objects/UploadStatus.ts`:
+- [X] T012 [US1] Implementar `DP/domain/value-objects/UploadStatus.ts`:
   - Tipo `UploadStatusValue = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED"`.
   - Clase que extiende `ValueObject<UploadStatusValue>`, con instancias estáticas `PENDING`, `PROCESSING`, `COMPLETED` y `FAILED`, y `static from(value: UploadStatusValue)`.
   - Tabla privada `Record<UploadStatusValue, UploadStatusValue[]>` con las transiciones permitidas y `canTransitionTo(next: UploadStatus): boolean`.
