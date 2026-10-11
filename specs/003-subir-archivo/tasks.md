@@ -195,8 +195,8 @@ fases anteriores están terminadas.
 
 **Independent Test**: tests de abajo; dos `curl` con el mismo header devuelven el mismo `id`.
 
-- [ ] T037 [P] [US5] Tests de dominio y mapper: `Upload.create` acepta `idempotencyKey` opcional (`null` por defecto), rechaza una clave vacía o de más de 255 caracteres; `PrismaUploadMapper` mantiene la ida y vuelta con la clave.
-- [ ] T038 [US5] Implementar: `idempotencyKey String? @unique` en `DP/infrastructure/persistence/models/schema.prisma` y `npm run db:migrate -- --name add_idempotency_key`; campo en `Upload` y en el mapper. T037 en verde.
+- [X] T037 [P] [US5] Tests de dominio y mapper: `Upload.create` acepta `idempotencyKey` opcional (`null` por defecto), rechaza una clave vacía o de más de 255 caracteres; `PrismaUploadMapper` mantiene la ida y vuelta con la clave.
+- [X] T038 [US5] Implementar: `idempotencyKey String? @unique` en `DP/infrastructure/persistence/models/schema.prisma` y `npm run db:migrate -- --name add_idempotency_key`; campo en `Upload` y en el mapper. T037 en verde.
 - [ ] T039 [P] [US5] Tests de integración en `PrismaUploadRepository.test.ts`: `findByIdempotencyKey` encuentra por clave y devuelve `null` si no existe; guardar otro upload con la misma clave lanza `DuplicateIdempotencyKeyError`.
 - [ ] T040 [US5] Implementar `findByIdempotencyKey` en `IUploadRepository` y `PrismaUploadRepository`, y en `save` traducir el `P2002` sobre `idempotencyKey` a `DuplicateIdempotencyKeyError` (nuevo en `backend/src/shared/domain/errors.ts`). Sumar el método a `InMemoryUploadRepository`. T039 en verde.
 - [ ] T041 [P] [US5] Tests del handler: con una clave ya usada devuelve el mismo comprobante sin guardar archivo ni publicar; ante `DuplicateIdempotencyKeyError` (carrera simulada con un repositorio doble) devuelve el comprobante del upload ganador; sin clave, el comportamiento de US1 no cambia.

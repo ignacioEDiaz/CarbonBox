@@ -64,6 +64,36 @@ describe("Upload.create", () => {
   });
 });
 
+describe("Upload.create: clave de idempotencia (opcional)", () => {
+  const create = (idempotencyKey?: string | null) =>
+    Upload.create({ fileName: validFileName(), fileUrl: "uploads/datos.csv", userId: "user-123", idempotencyKey });
+
+  it("sin clave, queda en null", () => {
+    expect(newUpload().idempotencyKey).toBeNull();
+  });
+
+  it("guarda la clave que manda el cliente", () => {
+    const result = create("abc-123");
+
+    expect(result.isRight() && result.value.idempotencyKey).toBe("abc-123");
+  });
+
+  it("acepta una clave de 255 caracteres", () => {
+    expect(create("k".repeat(255)).isRight()).toBe(true);
+  });
+
+  it.each([
+    { label: "vacía", key: "" },
+    { label: "con solo espacios", key: "   " },
+    { label: "de 256 caracteres", key: "k".repeat(256) },
+  ])("rechaza una clave $label", ({ key }) => {
+    const result = create(key);
+
+    expect(result.isLeft()).toBe(true);
+    expect(result.value).toBeInstanceOf(ValidationError);
+  });
+});
+
 describe("transiciones válidas", () => {
   it("PENDING -> PROCESSING y actualiza updatedAt", () => {
     const upload = newUpload();

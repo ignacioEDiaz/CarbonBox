@@ -35,6 +35,7 @@ function copy(upload: Upload): Upload {
     processedRows: upload.processedRows,
     failedRows: upload.failedRows,
     errorMessage: upload.errorMessage,
+    idempotencyKey: upload.idempotencyKey,
     createdAt: upload.createdAt,
     updatedAt: upload.updatedAt,
   });
