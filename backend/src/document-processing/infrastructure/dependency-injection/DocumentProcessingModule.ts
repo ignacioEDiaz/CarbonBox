@@ -1,12 +1,16 @@
 import { asClass, AwilixContainer } from "awilix";
 import { CreateUploadCommandHandler } from "../../application/commands/handlers/CreateUploadCommandHandler";
+import { ProcessFileCommandHandler } from "../../application/commands/handlers/ProcessFileCommandHandler";
 import { GetUploadByIdQueryHandler } from "../../application/queries/handlers/GetUploadByIdQueryHandler";
 import { CsvParserService } from "../../application/services/CsvParserService";
+import { FileProcessingService } from "../../application/services/FileProcessingService";
+import { FileProcessingWorker } from "../../../workers/FileProcessingWorker";
 import { CreateUploadController } from "../../presentation/controllers/CreateUploadController";
 import { GetUploadByIdController } from "../../presentation/controllers/GetUploadByIdController";
 import { SqsMessageConsumer } from "../messaging/SqsMessageConsumer";
 import { SqsMessagePublisher } from "../messaging/SqsMessagePublisher";
 import { PrismaActivityDataRepository } from "../persistence/repositories/PrismaActivityDataRepository";
+import { PrismaRowErrorRepository } from "../persistence/repositories/PrismaRowErrorRepository";
 import { PrismaUploadRepository } from "../persistence/repositories/PrismaUploadRepository";
 import { S3FileStorage } from "../storage/S3FileStorage";
 
@@ -20,7 +24,11 @@ export function registerDocumentProcessingModule(container: AwilixContainer): vo
     fileStorage: asClass(S3FileStorage).singleton(),
     messagePublisher: asClass(SqsMessagePublisher).singleton(),
     messageConsumer: asClass(SqsMessageConsumer).singleton(), // lo usa el worker (spec 005)
-    csvParserService: asClass(CsvParserService).singleton(), // lo usa el procesamiento (spec 005)
+    rowErrorRepository: asClass(PrismaRowErrorRepository).singleton(),
+    csvParserService: asClass(CsvParserService).singleton(),
+    fileProcessingService: asClass(FileProcessingService).singleton(),
+    processFileCommandHandler: asClass(ProcessFileCommandHandler).singleton(),
+    fileProcessingWorker: asClass(FileProcessingWorker).singleton(), // lo arranca npm run worker
 
     createUploadCommandHandler: asClass(CreateUploadCommandHandler).singleton(),
     createUploadController: asClass(CreateUploadController).singleton(),
