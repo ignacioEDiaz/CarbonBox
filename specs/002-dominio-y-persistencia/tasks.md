@@ -179,7 +179,7 @@ y se leen por upload.
 
   Verificar que falla.
 - [X] T026 [US3] Implementar `DP/infrastructure/persistence/mappers/PrismaActivityDataMapper.ts`. Escribe la fecha con `new Date(date)` y la lee con `toISOString().slice(0, 10)` (research.md §2). T025 en verde.
-- [ ] T027 [US3] Test de integración en `backend/tests/integration/document-processing/PrismaActivityDataRepository.test.ts`, escenarios 3 a 7 de US3:
+- [X] T027 [US3] Test de integración en `backend/tests/integration/document-processing/PrismaActivityDataRepository.test.ts`, escenarios 3 a 7 de US3:
   - 5 filas se guardan y se leen iguales, con la fecha como el mismo día;
   - un upload sin filas devuelve `[]`;
   - un upload inexistente hace que `saveForUpload` rechace y deja 0 filas;
@@ -188,7 +188,7 @@ y se leen por upload.
   - 1.000 filas se guardan en menos de 2000 ms y se leen en menos de 1000 ms (SC-004).
 
   Verificar que falla.
-- [ ] T028 [US3] Implementar `DP/infrastructure/persistence/repositories/PrismaActivityDataRepository.ts`. `saveForUpload` hace `prismaClient.$transaction([deleteMany({ where: { uploadId } }), createMany({ data: rows.map(toPersistence) })])`; `findByUploadId` usa `findMany` y el mapper. T027 en verde.
+- [X] T028 [US3] Implementar `DP/infrastructure/persistence/repositories/PrismaActivityDataRepository.ts`. `saveForUpload` hace `prismaClient.$transaction([deleteMany({ where: { uploadId } }), createMany({ data: rows.map(toPersistence) })])`; `findByUploadId` usa `findMany` y el mapper. T027 en verde.
 - [ ] T029 [US3] Ampliar `backend/tests/unit/main/container.test.ts` para que `activityDataRepository` sea instancia de `PrismaActivityDataRepository` (debe fallar), y registrarlo en `DP/infrastructure/dependency-injection/DocumentProcessingModule.ts`.
 
 **Checkpoint**: las tres historias completas. `npm test` en verde.
