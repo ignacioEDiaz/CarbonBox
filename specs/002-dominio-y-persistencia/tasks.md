@@ -93,7 +93,7 @@ integración.
   - Tabla privada `Record<UploadStatusValue, UploadStatusValue[]>` con las transiciones permitidas y `canTransitionTo(next: UploadStatus): boolean`.
 
   T011 en verde.
-- [ ] T013 [US1] Test de `Upload` en `backend/tests/unit/document-processing/domain/entities/Upload.test.ts`, con los escenarios 1 a 10 de US1 del spec:
+- [X] T013 [US1] Test de `Upload` en `backend/tests/unit/document-processing/domain/entities/Upload.test.ts`, con los escenarios 1 a 10 de US1 del spec:
   - `create` con un `FileName` válido, `fileUrl` no vacío y `userId: "user-123"` da un upload PENDING, con `id` no vacío, conteos y `errorMessage` en `null`, y `createdAt === updatedAt`.
   - `create` con `fileUrl` vacío da `left`.
   - Transiciones:
@@ -107,7 +107,7 @@ integración.
     - `markAsFailed("")`;
     - conteos que no cierran (8 + 1 ≠ 10), negativos o no enteros.
   - `updatedAt` cambia en cada transición válida.
-- [ ] T014 [US1] Implementar `DP/domain/entities/Upload.ts`:
+- [X] T014 [US1] Implementar `DP/domain/entities/Upload.ts`:
   - Extiende `AggregateRoot` y tiene un tipo `UploadProps` con los campos de data-model.md.
   - `static create({ fileName, fileUrl, userId })` genera el id con `randomUUID()` de `node:crypto`.
   - `static restore(props)` reconstruye sin validar.
