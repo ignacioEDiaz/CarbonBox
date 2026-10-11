@@ -22,6 +22,11 @@ export class InMemoryUploadRepository implements IUploadRepository {
     const upload = this.uploads.get(id);
     return upload === undefined ? null : copy(upload);
   }
+
+  async findByIdempotencyKey(idempotencyKey: string): Promise<Upload | null> {
+    const upload = this.all.find((saved) => saved.idempotencyKey === idempotencyKey);
+    return upload === undefined ? null : copy(upload);
+  }
 }
 
 function copy(upload: Upload): Upload {
