@@ -6,3 +6,41 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+// Enum de Postgres: la base rechaza cualquier estado que no sea uno de estos
+enum UploadStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model Upload {
+  id            String         @id
+  fileName      String
+  fileUrl       String
+  status        UploadStatus
+  userId        String
+  totalRows     Int?
+  processedRows Int?
+  failedRows    Int?
+  errorMessage  String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  activityData  ActivityData[]
+}
+
+model ActivityData {
+  id        String   @id
+  uploadId  String
+  category  String
+  amount    Float
+  unit      String
+  date      DateTime @db.Date // solo el día, sin hora: no se corre por zona horaria
+  createdAt DateTime @default(now())
+
+  upload Upload @relation(fields: [uploadId], references: [id])
+
+  @@index([uploadId])
+}

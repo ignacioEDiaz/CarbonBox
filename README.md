@@ -13,7 +13,7 @@ cada parte tiene su spec, su plan y sus tareas en [`specs/`](specs/), y todas re
 | Spec | Qué construye | Estado |
 |---|---|---|
 | [001-base-del-proyecto](specs/001-base-del-proyecto/) | Postgres en Docker, servicio Fastify, `/health`, configuración, piezas compartidas | ✅ Completo |
-| 002-dominio-y-persistencia | Entidades `Upload` y `ActivityData`, schema y repositorios | Pendiente |
+| [002-dominio-y-persistencia](specs/002-dominio-y-persistencia/) | Entidades `Upload` y `ActivityData`, estados, schema, migración y repositorios | ✅ Completo |
 | 003 a 007 | Subida, parseo, worker, consultas, frontend | Pendiente |
 
 ## Requisitos
@@ -31,6 +31,7 @@ docker compose up -d --wait        # PostgreSQL 15, espera a que esté listo
 cd backend
 cp .env.example .env               # en PowerShell: Copy-Item .env.example .env
 npm install                        # también genera el cliente de Prisma
+npm run db:deploy                  # crea las tablas (aplica las migraciones)
 npm run dev                        # API en http://localhost:3000
 ```
 
@@ -42,16 +43,21 @@ curl http://localhost:3000/health
 ```
 
 La guía completa de verificación, incluida la base caída, la persistencia y los errores de
-configuración, está en [quickstart.md](specs/001-base-del-proyecto/quickstart.md).
+configuración, está en los quickstart de cada spec: [001](specs/001-base-del-proyecto/quickstart.md) y
+[002](specs/002-dominio-y-persistencia/quickstart.md).
 
 ## Scripts (`backend/`)
 
 | Script | Qué hace |
 |---|---|
 | `npm run dev` | Corre la API con recarga automática (`tsx watch`) |
-| `npm test` | Corre todos los tests con Jest |
+| `npm test` | Corre todos los tests (unitarios, HTTP y de integración) |
+| `npm run test:unit` | Solo unitarios y HTTP: no necesita Docker |
+| `npm run test:integration` | Repositorios contra la base de tests `document_processing_test` (necesita Docker). La crea y la migra sola |
 | `npm run test:watch` | Tests en modo watch, para el ciclo de TDD |
 | `npm run typecheck` | Chequea tipos con `tsc` sin generar archivos |
+| `npm run db:deploy` | Aplica las migraciones existentes (lo que corre quien clona el repo) |
+| `npm run db:migrate -- --name <nombre>` | Crea una migración nueva después de cambiar el schema y regenera el cliente |
 
 ## API
 
@@ -61,6 +67,29 @@ configuración, está en [quickstart.md](specs/001-base-del-proyecto/quickstart.
 
 Todos los errores comparten el formato `{ "error": { "type", "message" } }`: ver el
 [contrato](specs/001-base-del-proyecto/contracts/http-api.md).
+
+## Modelo de datos
+
+Dos tablas en PostgreSQL ([detalle](specs/002-dominio-y-persistencia/data-model.md)):
+
+- **`Upload`:** el archivo subido y su procesamiento (nombre, ubicación, estado, usuario,
+  conteos de filas, mensaje de error y fechas).
+- **`ActivityData`:** cada fila válida del CSV (categoría, cantidad, unidad y fecha),
+  vinculada a su upload.
+
+Estados del upload. Las reglas viven en la entidad `Upload`, no en la base ni en los
+controllers:
+
+```text
+PENDING ──► PROCESSING ──► COMPLETED
+               │  ▲
+               │  └── reintento (el worker se cayó y el mensaje volvió a la cola)
+               └────► FAILED
+```
+
+COMPLETED y FAILED son finales. Guardar las filas de un upload **reemplaza** las de un intento
+anterior en una sola transacción, así que procesar dos veces el mismo upload da el mismo
+resultado (idempotencia por `uploadId`).
 
 ## Arquitectura
 
@@ -89,6 +118,9 @@ Se respeta el árbol de carpetas de la consigna. Estos son los agregados y por q
 | `backend/prisma.config.ts` | Obligatorio en Prisma 7 |
 | `backend/tests/` | La consigna no define dónde van los tests; se separan de `src/` para que `src/` siga el árbol |
 | `docker-compose.yml` en la raíz | Lo levanta todo desde un lugar; ahí van a convivir el backend y el frontend |
+| `status` como enum de Postgres (la consigna usa `String`) | La base rechaza estados inválidos |
+| `date` como `DATE` (`@db.Date`) | Es un día, no un instante: no se corre por zona horaria |
+| Índice en `ActivityData.uploadId` | Leer y reemplazar las filas de un upload es la operación más frecuente |
 
 Las decisiones técnicas, con sus alternativas descartadas, están en
 [research.md](specs/001-base-del-proyecto/research.md).
