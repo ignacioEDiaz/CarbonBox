@@ -164,16 +164,22 @@ Fuera de Spec Kit, al final: diagrama AWS (`docs/arquitectura-aws.png`),
 ## Cómo se ejecuta
 
 ```bash
-docker compose up -d        # Postgres (desde la raíz)
+docker compose up -d --wait # Postgres (desde la raíz)
 cd backend
-npm install
-npx prisma migrate dev
+npm install                 # también genera el cliente de Prisma
+npm run db:deploy           # aplica las migraciones existentes
 npm run dev                 # API, terminal 1
 npm run worker              # worker, terminal 2
 cd ../frontend
 npm install
 npm run dev                 # frontend, terminal 3
 ```
+
+- Cambio de schema: `npm run db:migrate -- --name <nombre>` (crea la migración y
+  regenera el cliente). No usar `prisma migrate reset` desde un agente: Prisma lo
+  bloquea sin consentimiento explícito y no hace falta.
+- Tests: `npm run test:unit` (sin Docker), `npm run test:integration` (base
+  `document_processing_test`, se crea y migra sola) y `npm test` (todo).
 
 ## Qué evalúan (para priorizar)
 
