@@ -128,13 +128,13 @@ integración.
 
 ### Tests and implementation for User Story 2 ⚠️
 
-- [ ] T015 [US2] Crear `DP/domain/repositories/IUploadRepository.ts` con `save(upload: Upload): Promise<void>` y `findById(id: string): Promise<Upload | null>` (contracts/repositories.md).
-- [ ] T016 [P] [US2] Test de `PrismaUploadMapper` en `backend/tests/unit/document-processing/infrastructure/persistence/mappers/PrismaUploadMapper.test.ts`:
+- [X] T015 [US2] Crear `DP/domain/repositories/IUploadRepository.ts` con `save(upload: Upload): Promise<void>` y `findById(id: string): Promise<Upload | null>` (contracts/repositories.md).
+- [X] T016 [P] [US2] Test de `PrismaUploadMapper` en `backend/tests/unit/document-processing/infrastructure/persistence/mappers/PrismaUploadMapper.test.ts`:
   - `toDomain(toPersistence(upload))` conserva todos los campos.
   - Un registro con `status: "COMPLETED"` da un `Upload` cuyo `status.equals(UploadStatus.COMPLETED)`.
 
   Usa el tipo `Upload` generado por Prisma para el registro, sin base. Verificar que falla.
-- [ ] T017 [US2] Implementar `DP/infrastructure/persistence/mappers/PrismaUploadMapper.ts` con `static toDomain(record)` (vía `Upload.restore`, con `FileName` y `UploadStatus.from`) y `static toPersistence(upload)`. Sin `as`. T016 en verde.
+- [X] T017 [US2] Implementar `DP/infrastructure/persistence/mappers/PrismaUploadMapper.ts` con `static toDomain(record)` (vía `Upload.restore`, con `FileName` y `UploadStatus.from`) y `static toPersistence(upload)`. Sin `as`. T016 en verde.
 - [ ] T018 [US2] Test de integración en `backend/tests/integration/document-processing/PrismaUploadRepository.test.ts`, usando `createTestPrismaClient()`:
   - guardar y leer da los mismos valores;
   - PENDING → PROCESSING, guardar y leer: el estado es PROCESSING y `updatedAt > createdAt`;
