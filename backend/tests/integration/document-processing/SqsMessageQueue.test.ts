@@ -26,6 +26,10 @@ function queuePair(visibilityTimeoutSeconds: number) {
   return { publisher: new SqsMessagePublisher(sqsClient, config), consumer: new SqsMessageConsumer(sqsClient, config) };
 }
 
+// Los tests que esperan el vencimiento hacen polling hasta 5 s: el timeout por defecto de Jest
+// (5 s) no alcanza si la máquina está cargada, así que esos tests tienen uno propio más largo
+const POLLING_TEST_TIMEOUT_MS = 15_000;
+
 // LocalStack revisa el vencimiento del ocultamiento cada ~1 s: en vez de dormir un tiempo fijo,
 // se pregunta cada 250 ms hasta un tope
 async function receiveWithin(consumer: SqsMessageConsumer, timeoutMs: number): Promise<ReceivedMessage | null> {
@@ -74,7 +78,7 @@ describe("SqsMessageConsumer (LocalStack)", () => {
     const again = await receiveWithin(consumer, 5000);
 
     expect([again?.body, again?.receiveCount]).toEqual([{ uploadId: "a" }, 2]);
-  });
+  }, POLLING_TEST_TIMEOUT_MS);
 
   it("un mensaje confirmado no vuelve, y confirmarlo otra vez no falla", async () => {
     const { publisher, consumer } = queuePair(1);
@@ -86,7 +90,7 @@ describe("SqsMessageConsumer (LocalStack)", () => {
     await expect(consumer.delete(message)).resolves.toBeUndefined();
 
     await expect(receiveWithin(consumer, 3000)).resolves.toBeNull();
-  });
+  }, POLLING_TEST_TIMEOUT_MS);
 
   it("un cuerpo que no es JSON se entrega como texto, sin que receive() falle", async () => {
     const { consumer } = queuePair(30);
