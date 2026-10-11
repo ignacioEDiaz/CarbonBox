@@ -1,4 +1,5 @@
 import { asClass, AwilixContainer } from "awilix";
+import { PrismaActivityDataRepository } from "../persistence/repositories/PrismaActivityDataRepository";
 import { PrismaUploadRepository } from "../persistence/repositories/PrismaUploadRepository";
 
 // Registra las piezas del bounded context document-processing.
@@ -6,5 +7,6 @@ import { PrismaUploadRepository } from "../persistence/repositories/PrismaUpload
 export function registerDocumentProcessingModule(container: AwilixContainer): void {
   container.register({
     uploadRepository: asClass(PrismaUploadRepository).singleton(),
+    activityDataRepository: asClass(PrismaActivityDataRepository).singleton(),
   });
 }

@@ -189,7 +189,7 @@ y se leen por upload.
 
   Verificar que falla.
 - [X] T028 [US3] Implementar `DP/infrastructure/persistence/repositories/PrismaActivityDataRepository.ts`. `saveForUpload` hace `prismaClient.$transaction([deleteMany({ where: { uploadId } }), createMany({ data: rows.map(toPersistence) })])`; `findByUploadId` usa `findMany` y el mapper. T027 en verde.
-- [ ] T029 [US3] Ampliar `backend/tests/unit/main/container.test.ts` para que `activityDataRepository` sea instancia de `PrismaActivityDataRepository` (debe fallar), y registrarlo en `DP/infrastructure/dependency-injection/DocumentProcessingModule.ts`.
+- [X] T029 [US3] Ampliar `backend/tests/unit/main/container.test.ts` para que `activityDataRepository` sea instancia de `PrismaActivityDataRepository` (debe fallar), y registrarlo en `DP/infrastructure/dependency-injection/DocumentProcessingModule.ts`.
 
 **Checkpoint**: las tres historias completas. `npm test` en verde.
 
