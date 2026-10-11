@@ -2,11 +2,13 @@ import { asClass, AwilixContainer } from "awilix";
 import { CreateUploadCommandHandler } from "../../application/commands/handlers/CreateUploadCommandHandler";
 import { ProcessFileCommandHandler } from "../../application/commands/handlers/ProcessFileCommandHandler";
 import { GetUploadByIdQueryHandler } from "../../application/queries/handlers/GetUploadByIdQueryHandler";
+import { GetUploadRowErrorsQueryHandler } from "../../application/queries/handlers/GetUploadRowErrorsQueryHandler";
 import { CsvParserService } from "../../application/services/CsvParserService";
 import { FileProcessingService } from "../../application/services/FileProcessingService";
 import { FileProcessingWorker } from "../../../workers/FileProcessingWorker";
 import { CreateUploadController } from "../../presentation/controllers/CreateUploadController";
 import { GetUploadByIdController } from "../../presentation/controllers/GetUploadByIdController";
+import { GetUploadRowErrorsController } from "../../presentation/controllers/GetUploadRowErrorsController";
 import { SqsMessageConsumer } from "../messaging/SqsMessageConsumer";
 import { SqsMessagePublisher } from "../messaging/SqsMessagePublisher";
 import { PrismaActivityDataRepository } from "../persistence/repositories/PrismaActivityDataRepository";
@@ -34,5 +36,7 @@ export function registerDocumentProcessingModule(container: AwilixContainer): vo
     createUploadController: asClass(CreateUploadController).singleton(),
     getUploadByIdQueryHandler: asClass(GetUploadByIdQueryHandler).singleton(),
     getUploadByIdController: asClass(GetUploadByIdController).singleton(),
+    getUploadRowErrorsQueryHandler: asClass(GetUploadRowErrorsQueryHandler).singleton(),
+    getUploadRowErrorsController: asClass(GetUploadRowErrorsController).singleton(),
   });
 }
