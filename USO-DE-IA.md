@@ -170,6 +170,36 @@ abajo.
     reglas; la fila de Prisma no es la entidad).
   - Si convenía el patrón State para los estados.
   - Cómo se testeó el spec 002.
+- **Diagramas para estudiar:** le pedí a la IA diagramas en Miro de lo que estaba hecho. El
+  primero del recorrido de la subida tenía una explicación muy escueta y no usaba el estilo de
+  los anteriores; le pedí rehacerlo como si se lo explicara a alguien que no conoce el
+  proyecto: mapa con colores por capa, glosario y cada paso con qué pasa, qué datos viajan
+  (con un ejemplo de punta a punta) y por qué se hizo así.
+
+### 6. Spec 004: parseo y validación del CSV (spec y plan)
+
+- **Qué hizo la IA:** propuso el alcance (el parser solo lee y clasifica; cambiar estados y
+  guardar es del 005), redactó el spec y el plan, y antes de escribir el plan probó la
+  biblioteca en una carpeta aparte.
+- **Decisiones mías:**
+  - **Usar una biblioteca (`csv-parse`) y no `split(",")` a mano.** Con `split`, una fila
+    correcta con una coma entre comillas (`"Oficina, piso 2"`) se marcaría como inválida.
+  - **Cantidad en formato estricto** (`1200` o `12.5`). Descarté aceptar coma decimal porque
+    `1,200` es ambiguo y en un CSV la coma ya separa columnas.
+- **Qué descubrimos al probar la biblioteca antes de planificar** (no lo hubiera adivinado):
+  - **Con saltos de línea de Windows (`\r\n`) y líneas en blanco, los números de línea se
+    corrían en uno.** Se resolvió pasando `\r\n` a `\n` antes de parsear.
+  - **Los tipos de `csv-parse` mienten con la opción `raw`:** el tipo dice lista de textos pero
+    llega un objeto. Por eso la línea de cada fila se calcula con el callback `on_record`, que
+    sí está bien tipado, y no hace falta ningún `any` ni `as`.
+  - **Con una comilla sin cerrar, la biblioteca informa la última línea del archivo**, no la de
+    la comilla. El mensaje dice "después de la línea N" (la última fila que se leyó bien), y
+    ajusté el spec para que diga eso.
+  - **`Number()` no alcanza para validar la cantidad:** `Number("")` es 0 y `Number("1e3")` es
+    1000. Se valida primero con una expresión regular.
+  - 10 MB (unas 235 mil filas) se parsean en menos de 1 segundo: no hacen falta streams.
+- **Lo que quedó para el 005:** qué estado toma un upload si todas las filas son inválidas y
+  dónde se guardan los errores por fila.
 
 ## ¿Qué Generé con IA?
 
