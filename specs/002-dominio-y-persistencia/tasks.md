@@ -209,7 +209,7 @@ y se leen por upload.
   - las decisiones discutidas (reintento idempotente por `uploadId`, validación en la API frente al worker, idempotency key);
   - lo que encontró la prueba (bloqueo de `migrate reset` para agentes de IA, `generate` separado en Prisma 7, fechas en distintas zonas horarias);
   - en "¿Qué Aprendí?", espacio para que el autor complete idempotencia y DDD (aggregate root, value objects).
-- [ ] T034 Recorrer `specs/002-dominio-y-persistencia/quickstart.md` completo, incluida una base de tests inexistente (borrarla primero con `DROP DATABASE IF EXISTS document_processing_test`), y confirmar SC-001 a SC-006.
+- [X] T034 Recorrer `specs/002-dominio-y-persistencia/quickstart.md` completo, incluida una base de tests inexistente (borrarla primero con `DROP DATABASE IF EXISTS document_processing_test`), y confirmar SC-001 a SC-006.
 
 ---
 
