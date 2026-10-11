@@ -1,8 +1,8 @@
-import { InfoRecord, parse } from "csv-parse/sync";
+import { CsvError, InfoRecord, parse } from "csv-parse/sync";
 import { Either } from "../../../shared/domain/Either";
 import { ValidationError } from "../../../shared/domain/errors";
 import { ActivityData } from "../../domain/entities/ActivityData";
-import { EXPECTED_CSV_COLUMNS } from "../../domain/value-objects/CsvHeader";
+import { CsvHeader, EXPECTED_CSV_COLUMNS } from "../../domain/value-objects/CsvHeader";
 import { CsvParseResult, ICsvParserService, RowError } from "./ICsvParserService";
 
 // Solo dígitos, con punto decimal opcional: Number() solo aceptaría "", "1e3" o "0x10"
@@ -13,26 +13,76 @@ type CsvRow = { fields: string[]; line: number };
 // Convierte el CSV crudo en filas de ActivityData. Las reglas de cada fila son las de la
 // entidad: acá solo se lee el texto, se cuentan las columnas y se convierte la cantidad.
 export class CsvParserService implements ICsvParserService {
+  // Primero lo que invalida el archivo entero; después, fila por fila
   parse(content: Uint8Array, uploadId: string): Either<ValidationError, CsvParseResult> {
-    const text = new TextDecoder().decode(content);
-    const rows = readRows(text);
-    return Either.right(classifyRows(rows, uploadId));
+    const textOrError = decodeUtf8(content);
+    if (textOrError.isLeft()) {
+      return Either.left(textOrError.value);
+    }
+    const headerOrError = CsvHeader.fromContent(content);
+    if (headerOrError.isLeft()) {
+      return Either.left(headerOrError.value);
+    }
+    const rowsOrError = readRows(textOrError.value);
+    if (rowsOrError.isLeft()) {
+      return Either.left(rowsOrError.value);
+    }
+    if (rowsOrError.value.length === 0) {
+      return Either.left(new ValidationError("El archivo no tiene filas de datos: solo trae el encabezado"));
+    }
+    return Either.right(classifyRows(rowsOrError.value, uploadId));
   }
 }
 
-function readRows(text: string): CsvRow[] {
+// Con fatal, un byte que no es UTF-8 lanza en vez de convertirse en "�". También descarta el BOM.
+function decodeUtf8(content: Uint8Array): Either<ValidationError, string> {
+  try {
+    return Either.right(new TextDecoder("utf-8", { fatal: true }).decode(content));
+  } catch (error) {
+    if (!isInvalidUtf8Error(error)) {
+      throw error;
+    }
+    return Either.left(new ValidationError("El archivo no es texto UTF-8 válido: guardalo como CSV UTF-8"));
+  }
+}
+
+// Se reconoce por el código de Node y no con instanceof TypeError: en los tests, Jest corre el
+// código en otro contexto y el TypeError de Node no es el mismo objeto que el del test
+function isInvalidUtf8Error(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "ERR_ENCODING_INVALID_ENCODED_DATA"
+  );
+}
+
+function readRows(text: string): Either<ValidationError, CsvRow[]> {
   const rows: CsvRow[] = [];
-  parse(text, {
-    from_line: 2, // la línea 1 es el encabezado
-    skip_empty_lines: true,
-    trim: true,
-    relax_column_count: true, // otra cantidad de columnas es un error de esa fila, no del archivo
-    on_record: (fields: string[], context: InfoRecord) => {
-      rows.push({ fields, line: context.lines });
-      return fields;
-    },
-  });
-  return rows;
+  let lastReadLine = 1; // el encabezado
+  try {
+    parse(text, {
+      from_line: 2, // la línea 1 es el encabezado, ya validado
+      skip_empty_lines: true,
+      trim: true,
+      relax_column_count: true, // otra cantidad de columnas es un error de esa fila, no del archivo
+      on_record: (fields: string[], context: InfoRecord) => {
+        rows.push({ fields, line: context.lines });
+        lastReadLine = context.lines;
+        return fields;
+      },
+    });
+  } catch (error) {
+    if (!(error instanceof CsvError)) {
+      throw error;
+    }
+    // Una comilla sin cerrar se come el resto del archivo: la biblioteca solo informa dónde
+    // terminó. Lo que se sabe con certeza es que el problema está después de la última fila leída.
+    return Either.left(
+      new ValidationError(`El archivo tiene comillas mal cerradas después de la línea ${lastReadLine}`),
+    );
+  }
+  return Either.right(rows);
 }
 
 function classifyRows(rows: CsvRow[], uploadId: string): CsvParseResult {

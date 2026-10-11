@@ -1,6 +1,7 @@
 import { CsvParserService } from "../../../../../src/document-processing/application/services/CsvParserService";
 import { CsvParseResult } from "../../../../../src/document-processing/application/services/ICsvParserService";
 import { ActivityData } from "../../../../../src/document-processing/domain/entities/ActivityData";
+import { ValidationError } from "../../../../../src/shared/domain/errors";
 
 const UPLOAD_ID = "8b0e5c0e-3a52-4c0e-9d53-0d2a0f1c7a11";
 const HEADER = "category,amount,unit,date";
@@ -133,5 +134,70 @@ describe("CsvParserService: filas válidas e inválidas (US1)", () => {
     expect(values(second.validRows)).toEqual(values(first.validRows));
     expect(second.rowErrors).toEqual(first.rowErrors);
     expect(second.totalRows).toBe(first.totalRows);
+  });
+});
+
+// Para los casos donde el archivo entero no se puede procesar: devuelve el mensaje del Left
+function parseError(content: Uint8Array): string {
+  const result = parser.parse(content, UPLOAD_ID);
+  if (result.isRight()) {
+    throw new Error(`Se esperaba un error de archivo y llegaron ${result.value.totalRows} filas`);
+  }
+  expect(result.value).toBeInstanceOf(ValidationError);
+  return result.value.message;
+}
+
+describe("CsvParserService: archivos que no se pueden procesar (US2)", () => {
+  it.each([
+    { label: "en otro orden", header: "amount,category,unit,date" },
+    { label: "con una columna de más", header: "category,amount,unit,date,extra" },
+    { label: "con una columna de menos", header: "category,amount,unit" },
+    { label: "separado por punto y coma", header: "category;amount;unit;date" },
+    { label: "que es una fila de datos", header: "Electricidad,10,kWh,2024-03-01" },
+  ])("rechaza un encabezado $label con el mensaje de la subida", ({ header }) => {
+    const message = parseError(csv(header, "Gas,10,m3,2024-03-01"));
+
+    expect(message).toBe(`El encabezado debe ser "category,amount,unit,date" y llegó "${header}"`);
+  });
+
+  it.each([
+    { label: "con mayúsculas y espacios", content: csv("Category, Amount ,UNIT,date", "Gas,10,m3,2024-03-01") },
+    { label: "con saltos de línea de Windows", content: Buffer.from(`${HEADER}\r\nGas,10,m3,2024-03-01\r\n`) },
+    { label: "precedido por la marca BOM", content: Buffer.from(`﻿${HEADER}\nGas,10,m3,2024-03-01\n`) },
+  ])("acepta el encabezado $label, como la subida", ({ content }) => {
+    expect(values(parseOk(content).validRows)).toEqual([["Gas", 10, "m3", "2024-03-01"]]);
+  });
+
+  it.each([
+    { label: "solo el encabezado", content: csv(HEADER) },
+    { label: "el encabezado y líneas vacías", content: csv(HEADER, "", "   ", "") },
+  ])("rechaza un archivo con $label porque no tiene filas de datos", ({ content }) => {
+    expect(parseError(content)).toBe("El archivo no tiene filas de datos: solo trae el encabezado");
+  });
+
+  it("rechaza un archivo que no es texto UTF-8", () => {
+    // "é" en Latin-1 es el byte 0xe9, que en UTF-8 no es válido solo
+    const latin1Row = Buffer.from([0x43, 0x61, 0x66, 0xe9, 0x2c, 0x31, 0x2c, 0x6b, 0x67, 0x2c]);
+    const content = Buffer.concat([Buffer.from(`${HEADER}\n`), latin1Row, Buffer.from("2024-03-01\n")]);
+
+    expect(parseError(content)).toBe("El archivo no es texto UTF-8 válido: guardalo como CSV UTF-8");
+  });
+
+  it("rechaza comillas sin cerrar e indica la última línea leída bien", () => {
+    const content = csv(HEADER, "Gas,10,m3,2024-03-01", "", '"Electricidad,10,kWh,2024-03-01', "Agua,5,m3,2024-03-02");
+
+    expect(parseError(content)).toBe("El archivo tiene comillas mal cerradas después de la línea 2");
+  });
+
+  it("rechaza comillas sin cerrar en la primera fila de datos (después del encabezado)", () => {
+    expect(parseError(csv(HEADER, '"Gas,10,m3,2024-03-01'))).toBe(
+      "El archivo tiene comillas mal cerradas después de la línea 1",
+    );
+  });
+
+  it("rechaza texto después de la comilla de cierre", () => {
+    expect(parseError(csv(HEADER, '"Gas"x,10,m3,2024-03-01'))).toBe(
+      "El archivo tiene comillas mal cerradas después de la línea 1",
+    );
   });
 });
