@@ -128,7 +128,7 @@ en SQS. Los rechazos no dejan nada. Si no se puede encolar, el upload queda FAIL
   - `backend/src/main/App.ts` llama a esa función.
   - `DP/infrastructure/dependency-injection/DocumentProcessingModule.ts` registra `fileStorage` (`S3FileStorage`), `messagePublisher` (`SqsMessagePublisher`), `createUploadCommandHandler` y `createUploadController`, todos `singleton`.
   - `container.test.ts`: `fileStorage` es `S3FileStorage` y `messagePublisher` es `SqsMessagePublisher`.
-- [ ] T026 [US1] Test HTTP `backend/tests/http/uploads.test.ts`, describe `POST /api/v1/uploads`, con la App real y los dobles registrados encima (como `health.test.ts`); el cuerpo multipart se arma con `FormData`, `Blob` y `new Response(form)` (research §15):
+- [X] T026 [US1] Test HTTP `backend/tests/http/uploads.test.ts`, describe `POST /api/v1/uploads`, con la App real y los dobles registrados encima (como `health.test.ts`); el cuerpo multipart se arma con `FormData`, `Blob` y `new Response(form)` (research §15):
   - `202` con `id`, `status`, `fileName` y `createdAt`.
   - `400 VALIDATION_ERROR`: petición sin multipart, `datos.txt`, archivo vacío y encabezado incorrecto, sin nada guardado.
   - `413` con un archivo mayor que `upload.maxFileSizeMb: 1`.
