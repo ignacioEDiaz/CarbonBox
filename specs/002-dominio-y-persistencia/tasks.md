@@ -160,12 +160,12 @@ y se leen por upload.
 
 ### Tests and implementation for User Story 3 ⚠️
 
-- [ ] T022 [P] [US3] Test de `ActivityData` en `backend/tests/unit/document-processing/domain/entities/ActivityData.test.ts`:
+- [X] T022 [P] [US3] Test de `ActivityData` en `backend/tests/unit/document-processing/domain/entities/ActivityData.test.ts`:
   - Acepta `{ category: "Electricity", amount: 150.5, unit: "kWh", date: "2024-01-15" }`, con id generado.
   - Recorta categoría y unidad.
   - Rechaza con `ValidationError` categoría o unidad vacía o solo espacios, `amount` 0, negativo, `NaN` o `Infinity`, y fechas `"2024-02-31"`, `"2024-13-01"`, `"15/01/2024"` y `""`.
   - Acepta `"2024-02-29"` (año bisiesto).
-- [ ] T023 [US3] Implementar `DP/domain/entities/ActivityData.ts`:
+- [X] T023 [US3] Implementar `DP/domain/entities/ActivityData.ts`:
   - `static create({ uploadId, category, amount, unit, date }): Either<ValidationError, ActivityData>`, con id de `randomUUID()`.
   - Una función privada `isValidCalendarDate` que exige `/^\d{4}-\d{2}-\d{2}$/` y que `Date.UTC` reconstruya el mismo año, mes y día.
   - `static restore(props)` y getters de solo lectura.
