@@ -15,5 +15,22 @@ services:
       interval: 5s
       retries: 10
 
+  # SQS y S3 emulados. Fijada en 4.14.0: es la última versión que arranca sin cuenta ni
+  # token de LocalStack (desde la 2026.03.0, "latest" exige LOCALSTACK_AUTH_TOKEN).
+  localstack:
+    image: localstack/localstack:4.14.0
+    environment:
+      SERVICES: s3,sqs
+    ports:
+      - "4566:4566"
+    volumes:
+      # Script que crea la cola y los buckets al arrancar
+      - ./localstack/ready.d:/etc/localstack/init/ready.d
+    # Healthy recién cuando terminó el script: la cola y los buckets ya existen
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4566/_localstack/init/ready | grep -q '\"completed\": true'"]
+      interval: 5s
+      retries: 20
+
 volumes:
   postgres_data:

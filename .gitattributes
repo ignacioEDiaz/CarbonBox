@@ -1,0 +1,2 @@
+# Los scripts de bash corren dentro de LocalStack (Linux): con fin de línea \r\n fallan
+*.sh text eol=lf
