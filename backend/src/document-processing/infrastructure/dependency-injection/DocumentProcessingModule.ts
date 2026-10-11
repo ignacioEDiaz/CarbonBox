@@ -1,6 +1,7 @@
 import { asClass, AwilixContainer } from "awilix";
 import { CreateUploadCommandHandler } from "../../application/commands/handlers/CreateUploadCommandHandler";
 import { GetUploadByIdQueryHandler } from "../../application/queries/handlers/GetUploadByIdQueryHandler";
+import { CsvParserService } from "../../application/services/CsvParserService";
 import { CreateUploadController } from "../../presentation/controllers/CreateUploadController";
 import { GetUploadByIdController } from "../../presentation/controllers/GetUploadByIdController";
 import { SqsMessageConsumer } from "../messaging/SqsMessageConsumer";
@@ -19,6 +20,7 @@ export function registerDocumentProcessingModule(container: AwilixContainer): vo
     fileStorage: asClass(S3FileStorage).singleton(),
     messagePublisher: asClass(SqsMessagePublisher).singleton(),
     messageConsumer: asClass(SqsMessageConsumer).singleton(), // lo usa el worker (spec 005)
+    csvParserService: asClass(CsvParserService).singleton(), // lo usa el procesamiento (spec 005)
 
     createUploadCommandHandler: asClass(CreateUploadCommandHandler).singleton(),
     createUploadController: asClass(CreateUploadController).singleton(),

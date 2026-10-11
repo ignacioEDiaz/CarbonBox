@@ -1,6 +1,7 @@
 import { S3Client } from "@aws-sdk/client-s3";
 import { SQSClient } from "@aws-sdk/client-sqs";
 import { CreateUploadCommandHandler } from "../../../src/document-processing/application/commands/handlers/CreateUploadCommandHandler";
+import { CsvParserService } from "../../../src/document-processing/application/services/CsvParserService";
 import { SqsMessageConsumer } from "../../../src/document-processing/infrastructure/messaging/SqsMessageConsumer";
 import { SqsMessagePublisher } from "../../../src/document-processing/infrastructure/messaging/SqsMessagePublisher";
 import { S3FileStorage } from "../../../src/document-processing/infrastructure/storage/S3FileStorage";
@@ -35,6 +36,10 @@ describe("contenedor de dependencias", () => {
   it("resuelve el handler y el controller de la subida", () => {
     expect(container.resolve("createUploadCommandHandler")).toBeInstanceOf(CreateUploadCommandHandler);
     expect(container.resolve("createUploadController")).toBeInstanceOf(CreateUploadController);
+  });
+
+  it("resuelve csvParserService con el parser de csv-parse", () => {
+    expect(container.resolve("csvParserService")).toBeInstanceOf(CsvParserService);
   });
 
   it("resuelve los clientes del SDK de AWS", () => {
