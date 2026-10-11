@@ -1,6 +1,7 @@
 import { S3Client } from "@aws-sdk/client-s3";
 import { SQSClient } from "@aws-sdk/client-sqs";
 import { CreateUploadCommandHandler } from "../../../src/document-processing/application/commands/handlers/CreateUploadCommandHandler";
+import { SqsMessageConsumer } from "../../../src/document-processing/infrastructure/messaging/SqsMessageConsumer";
 import { SqsMessagePublisher } from "../../../src/document-processing/infrastructure/messaging/SqsMessagePublisher";
 import { S3FileStorage } from "../../../src/document-processing/infrastructure/storage/S3FileStorage";
 import { CreateUploadController } from "../../../src/document-processing/presentation/controllers/CreateUploadController";
@@ -25,9 +26,10 @@ describe("contenedor de dependencias", () => {
     expect(container.resolve("activityDataRepository")).toBeInstanceOf(PrismaActivityDataRepository);
   });
 
-  it("resuelve fileStorage con S3 y messagePublisher con SQS", () => {
+  it("resuelve fileStorage con S3, y messagePublisher y messageConsumer con SQS", () => {
     expect(container.resolve("fileStorage")).toBeInstanceOf(S3FileStorage);
     expect(container.resolve("messagePublisher")).toBeInstanceOf(SqsMessagePublisher);
+    expect(container.resolve("messageConsumer")).toBeInstanceOf(SqsMessageConsumer);
   });
 
   it("resuelve el handler y el controller de la subida", () => {

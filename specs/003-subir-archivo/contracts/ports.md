@@ -71,7 +71,9 @@ Reglas:
   (spec 002).
 - **Orden aproximado:** el más antiguo primero, sin garantía estricta en AWS (en LocalStack
   se verificó el orden).
-- **`body` llega parseado** (`JSON.parse` del `MessageBody`), pero tipado como `unknown`.
+- **`body` llega parseado** (`JSON.parse` del `MessageBody`), pero tipado como `unknown`. Si
+  el cuerpo no es JSON, se entrega el texto tal cual: quien consume lo valida y decide, en vez
+  de que `receive()` falle siempre con el mismo mensaje.
 
 | Implementación | `publish` | `receive` | `delete` |
 |---|---|---|---|

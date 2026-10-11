@@ -3,6 +3,7 @@ import { CreateUploadCommandHandler } from "../../application/commands/handlers/
 import { GetUploadByIdQueryHandler } from "../../application/queries/handlers/GetUploadByIdQueryHandler";
 import { CreateUploadController } from "../../presentation/controllers/CreateUploadController";
 import { GetUploadByIdController } from "../../presentation/controllers/GetUploadByIdController";
+import { SqsMessageConsumer } from "../messaging/SqsMessageConsumer";
 import { SqsMessagePublisher } from "../messaging/SqsMessagePublisher";
 import { PrismaActivityDataRepository } from "../persistence/repositories/PrismaActivityDataRepository";
 import { PrismaUploadRepository } from "../persistence/repositories/PrismaUploadRepository";
@@ -17,6 +18,7 @@ export function registerDocumentProcessingModule(container: AwilixContainer): vo
     activityDataRepository: asClass(PrismaActivityDataRepository).singleton(),
     fileStorage: asClass(S3FileStorage).singleton(),
     messagePublisher: asClass(SqsMessagePublisher).singleton(),
+    messageConsumer: asClass(SqsMessageConsumer).singleton(), // lo usa el worker (spec 005)
 
     createUploadCommandHandler: asClass(CreateUploadCommandHandler).singleton(),
     createUploadController: asClass(CreateUploadController).singleton(),

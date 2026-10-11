@@ -163,14 +163,14 @@ confirmar.
 
 **Independent Test**: `npm run test:integration` (quickstart.md, paso 6).
 
-- [ ] T034 [P] [US3] Test de integración `backend/tests/integration/document-processing/SqsMessageQueue.test.ts`, con una cola propia por `describe` y ocultamiento de 1 s (escenarios de US3, research §4):
+- [X] T034 [P] [US3] Test de integración `backend/tests/integration/document-processing/SqsMessageQueue.test.ts`, con una cola propia por `describe` y ocultamiento de 1 s (escenarios de US3, research §4):
   - Cola vacía: `receive()` devuelve `null`.
   - Dos `publish`: se reciben en orden, con `receiveCount` 1 y `body` parseado.
   - Recibido y no confirmado: otro `receive()` inmediato no lo trae.
   - Al vencer el ocultamiento vuelve con `receiveCount` 2. Se pregunta en un bucle cada 250 ms con un tope de 5 s, nunca con una espera fija.
   - `delete` lo elimina; un segundo `delete` del mismo mensaje no lanza.
   - 20 `receive()` simultáneos sobre 5 mensajes entregan 5 distintos (SC-005).
-- [ ] T035 [US3] Implementar `DP/infrastructure/messaging/SqsMessageConsumer.ts`: constructor `(sqsClient, config)`; `receive` usa `ReceiveMessage` con `MaxNumberOfMessages: 1`, `WaitTimeSeconds: 0`, `VisibilityTimeout: config.queue.visibilityTimeoutSeconds` y `MessageSystemAttributeNames: ["ApproximateReceiveCount"]`, y devuelve `ReceivedMessage` (con `JSON.parse` del body) o `null`; `delete` usa `DeleteMessage`. Registrar `messageConsumer` en `DocumentProcessingModule.ts` y en `container.test.ts`. T034 en verde.
+- [X] T035 [US3] Implementar `DP/infrastructure/messaging/SqsMessageConsumer.ts`: constructor `(sqsClient, config)`; `receive` usa `ReceiveMessage` con `MaxNumberOfMessages: 1`, `WaitTimeSeconds: 0`, `VisibilityTimeout: config.queue.visibilityTimeoutSeconds` y `MessageSystemAttributeNames: ["ApproximateReceiveCount"]`, y devuelve `ReceivedMessage` (con `JSON.parse` del body) o `null`; `delete` usa `DeleteMessage`. Registrar `messageConsumer` en `DocumentProcessingModule.ts` y en `container.test.ts`. T034 en verde.
 
 **Checkpoint**: la cola completa, lista para el worker del spec 005.
 
