@@ -1,5 +1,6 @@
 import { asClass, asValue, AwilixContainer, createContainer, InjectionMode } from "awilix";
 import { IConvictProps } from "../config/IConvictProps";
+import { registerDocumentProcessingModule } from "../document-processing/infrastructure/dependency-injection/DocumentProcessingModule";
 import { GetHealthQueryHandler } from "../health/application/GetHealthQueryHandler";
 import { PrismaDatabaseHealthChecker } from "../health/infrastructure/PrismaDatabaseHealthChecker";
 import { HealthController } from "../health/presentation/HealthController";
@@ -18,6 +19,7 @@ export function buildContainer(config: IConvictProps): AwilixContainer {
     getHealthQueryHandler: asClass(GetHealthQueryHandler).singleton(),
     healthController: asClass(HealthController).singleton(),
   });
+  registerDocumentProcessingModule(container);
 
   return container;
 }

@@ -144,8 +144,8 @@ integración.
 
   Verificar que falla.
 - [X] T019 [US2] Implementar `DP/infrastructure/persistence/repositories/PrismaUploadRepository.ts`: implementa `IUploadRepository` y recibe `prismaClient` por constructor. `save` usa `upsert` por `id` con el mapper; `findById` usa `findUnique` y el mapper, o devuelve `null`. T018 en verde.
-- [ ] T020 [US2] Test del contenedor en `backend/tests/unit/main/container.test.ts`: `buildContainer(config).resolve("uploadRepository")` es instancia de `PrismaUploadRepository`. No necesita base, porque la conexión es perezosa. Verificar que falla.
-- [ ] T021 [US2] Crear `DP/infrastructure/dependency-injection/DocumentProcessingModule.ts` con `registerDocumentProcessingModule(container: AwilixContainer)`, que registra `uploadRepository: asClass(PrismaUploadRepository).singleton()`, y llamarla desde `backend/src/main/container.ts`. T020 en verde.
+- [X] T020 [US2] Test del contenedor en `backend/tests/unit/main/container.test.ts`: `buildContainer(config).resolve("uploadRepository")` es instancia de `PrismaUploadRepository`. No necesita base, porque la conexión es perezosa. Verificar que falla.
+- [X] T021 [US2] Crear `DP/infrastructure/dependency-injection/DocumentProcessingModule.ts` con `registerDocumentProcessingModule(container: AwilixContainer)`, que registra `uploadRepository: asClass(PrismaUploadRepository).singleton()`, y llamarla desde `backend/src/main/container.ts`. T020 en verde.
 
 **Checkpoint**: US1 y US2 completas.
 
