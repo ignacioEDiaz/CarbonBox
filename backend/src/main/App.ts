@@ -4,6 +4,7 @@ import multipart from "@fastify/multipart";
 import { AwilixContainer } from "awilix";
 import Fastify, { FastifyInstance } from "fastify";
 import { IConvictProps } from "../config/IConvictProps";
+import { registerDocumentProcessingRoutes } from "../document-processing/presentation/routes/DocumentProcessingRoutes";
 import { PrismaClient } from "../generated/prisma/client";
 import { HealthController } from "../health/presentation/HealthController";
 import { adaptRoute } from "../shared/infrastructure/http/adaptRoute";
@@ -31,6 +32,7 @@ export class App {
     this.server.register(multipart, { limits: { fileSize: upload.maxFileSizeMb * 1024 * 1024, files: 1 } });
 
     this.server.get("/health", adaptRoute(container.resolve<HealthController>("healthController")));
+    registerDocumentProcessingRoutes(this.server, container);
   }
 
   async listen(port: number): Promise<void> {

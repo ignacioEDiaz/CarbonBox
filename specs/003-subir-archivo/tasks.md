@@ -123,7 +123,7 @@ en SQS. Los rechazos no dejan nada. Si no se puede encolar, el upload queda FAIL
   `npm run test:unit` sigue en verde.
 - [X] T023 [P] [US1] Test de `CreateUploadController` en `backend/tests/unit/document-processing/presentation/controllers/CreateUploadController.test.ts`, con un handler doble: arma un `CreateUploadCommand` con el `file` del request (o `null` si no hay) y `userId: "user-123"`; un `right` responde `202` con el comprobante; un `left` lanza ese error.
 - [X] T024 [US1] Implementar `DP/presentation/controllers/CreateUploadController.ts`: extiende `BaseController`, recibe `createUploadCommandHandler` (`ICommandHandler`), constante `USER_ID = "user-123"` con el comentario de research §13, y `this.respond(result, 202)`. T023 en verde.
-- [ ] T025 [US1] Conectar la subida:
+- [X] T025 [US1] Conectar la subida:
   - `DP/presentation/routes/DocumentProcessingRoutes.ts`: `registerDocumentProcessingRoutes(server, container)` registra `POST /api/v1/uploads` con `adaptRoute`.
   - `backend/src/main/App.ts` llama a esa función.
   - `DP/infrastructure/dependency-injection/DocumentProcessingModule.ts` registra `fileStorage` (`S3FileStorage`), `messagePublisher` (`SqsMessagePublisher`), `createUploadCommandHandler` y `createUploadController`, todos `singleton`.
