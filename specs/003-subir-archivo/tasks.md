@@ -211,7 +211,7 @@ fases anteriores están terminadas.
 - [X] T043 [P] Actualizar `README.md`: servicios de Docker (Postgres y LocalStack 4.14.0, por qué esa versión), variables nuevas, endpoints `POST` y `GET`, el orden del flujo (registro antes de publicar), y "Limitaciones conocidas": LocalStack sin persistencia, sin parches de seguridad, upload en PENDING si fallan a la vez la cola y la base (patrón outbox), archivos huérfanos en S3, mensaje del 413 en inglés y, si no se hizo, la clave de idempotencia con su diseño.
 - [X] T044 [P] Actualizar en `CLAUDE.md` la sección "Cómo se ejecuta" (`docker compose up -d --wait` levanta también LocalStack; copiar las variables nuevas del `.env.example`).
 - [X] T045 [P] Registrar el spec 003 en `USO-DE-IA.md`: qué se generó con IA, qué se corrigió (el plan paralelo con disco y Postgres descartado; el hallazgo del token de LocalStack; el ajuste del orden y la entrega de SQS) y qué se aprendió.
-- [ ] T046 Validar de punta a punta con [quickstart.md](quickstart.md), pasos 1 a 8, desde un estado limpio (`docker compose down` y `up -d --wait`), y con `npm test` y `npm run typecheck` en verde. Marcar en el spec SC-001 a SC-008 verificados.
+- [X] T046 Validar de punta a punta con [quickstart.md](quickstart.md), pasos 1 a 8, desde un estado limpio (`docker compose down` y `up -d --wait`), y con `npm test` y `npm run typecheck` en verde. Marcar en el spec SC-001 a SC-008 verificados.
 
 ---
 
