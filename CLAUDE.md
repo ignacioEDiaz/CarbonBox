@@ -119,6 +119,14 @@ no sea final.
   en PROCESSING para siempre.
 - **005:** el visibility timeout tiene que ser más largo que el procesamiento,
   para que dos workers no tomen el mismo upload a la vez.
+- **005 (pendiente de decidir con el autor):** qué estado toma un upload si
+  todas las filas son inválidas (`COMPLETED` con 0 procesadas o `FAILED`), y
+  dónde se guardan los errores por fila que devuelve el parser (hoy `Upload`
+  solo tiene `errorMessage`).
+- **005:** el handler usa `ICsvParserService` (registrado como
+  `csvParserService`). Un `Left` del parser es un error de negocio (marca FAILED
+  con ese mensaje y borra el mensaje); `totalRows`, `validRows.length` y
+  `rowErrors.length` van a `Upload.markAsCompleted`.
 
 ## Validaciones del CSV
 
@@ -127,6 +135,12 @@ no sea final.
 - `date` debe ser una fecha válida en formato `YYYY-MM-DD` (ojo:
   `new Date("2024-02-31")` no falla; validar de verdad).
 - `category` y `unit` no pueden estar vacíos.
+
+Implementado en el spec 004 (`CsvParserService`, con `csv-parse` 7.0.3):
+UTF-8 obligatorio, separador coma, comillas según el estándar, `amount` estricto
+(`/^\d+(\.\d+)?$/`: sin coma decimal, notación científica ni signos), un solo
+motivo por fila y la línea donde empieza cada fila. Las reglas de la fila viven
+en `ActivityData` y las del encabezado en `CsvHeader`: no duplicarlas.
 
 ## Endpoints
 
