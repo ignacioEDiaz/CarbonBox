@@ -8,7 +8,7 @@ const transitions: [UploadStatusValue, UploadStatusValue, boolean][] = [
   ["PENDING", "PENDING", false],
   ["PENDING", "PROCESSING", true],
   ["PENDING", "COMPLETED", false],
-  ["PENDING", "FAILED", false],
+  ["PENDING", "FAILED", true], // no se pudo encolar (spec 003)
   ["PROCESSING", "PENDING", false],
   ["PROCESSING", "PROCESSING", true], // reintento
   ["PROCESSING", "COMPLETED", true],

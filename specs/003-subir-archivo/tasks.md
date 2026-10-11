@@ -89,12 +89,12 @@ en SQS. Los rechazos no dejan nada. Si no se puede encolar, el upload queda FAIL
 
 > Cada test se escribe PRIMERO y se verifica que FALLA antes de implementar.
 
-- [ ] T012 [P] [US1] Actualizar los tests de dominio para `PENDING → FAILED` (FR-008b):
+- [X] T012 [P] [US1] Actualizar los tests de dominio para `PENDING → FAILED` (FR-008b):
   - `backend/tests/unit/document-processing/domain/value-objects/UploadStatus.test.ts`: en la matriz, `["PENDING", "FAILED", true]`.
   - `backend/tests/unit/document-processing/domain/entities/Upload.test.ts`: sacar `["PENDING", "FAILED"]` de las transiciones inválidas y agregar "PENDING -> FAILED guarda el mensaje de error".
 
   Verificar que fallan.
-- [ ] T013 [US1] En `DP/domain/value-objects/UploadStatus.ts`, `PENDING: ["PROCESSING", "FAILED"]` con el comentario `// FAILED: no se pudo encolar (spec 003)`. T012 en verde.
+- [X] T013 [US1] En `DP/domain/value-objects/UploadStatus.ts`, `PENDING: ["PROCESSING", "FAILED"]` con el comentario `// FAILED: no se pudo encolar (spec 003)`. T012 en verde.
 - [ ] T014 [P] [US1] Test de `CsvHeader` en `backend/tests/unit/document-processing/domain/value-objects/CsvHeader.test.ts` (FR-003, escenarios 10 y 11, data-model.md):
   - Acepta `category,amount,unit,date\n...`, con `\r\n`, con BOM inicial, con `Category, Amount ,UNIT,date` y un archivo que es solo el encabezado sin salto final.
   - Rechaza con `ValidationError`: columnas en otro orden, una de menos, una de más, otro nombre (`fecha,monto`), una fila de datos como primera línea, bytes binarios y más de 1024 bytes sin `\n`.

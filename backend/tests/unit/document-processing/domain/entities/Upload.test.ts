@@ -92,6 +92,14 @@ describe("transiciones válidas", () => {
     expect([upload.totalRows, upload.processedRows, upload.failedRows]).toEqual([10, 8, 2]);
   });
 
+  it("PENDING -> FAILED guarda el mensaje de error (no se pudo encolar)", () => {
+    const upload = uploadIn("PENDING");
+
+    expect(upload.markAsFailed("No se pudo encolar el archivo para procesarlo").isRight()).toBe(true);
+    expect(upload.status.equals(UploadStatus.FAILED)).toBe(true);
+    expect(upload.errorMessage).toBe("No se pudo encolar el archivo para procesarlo");
+  });
+
   it("PROCESSING -> FAILED guarda el mensaje de error", () => {
     const upload = uploadIn("PROCESSING");
 
@@ -115,7 +123,6 @@ function attemptTransition(upload: Upload, to: "PROCESSING" | "COMPLETED" | "FAI
 describe("transiciones inválidas: se rechazan y el upload no cambia", () => {
   it.each([
     ["PENDING", "COMPLETED"],
-    ["PENDING", "FAILED"],
     ["COMPLETED", "PROCESSING"],
     ["COMPLETED", "COMPLETED"],
     ["COMPLETED", "FAILED"],
