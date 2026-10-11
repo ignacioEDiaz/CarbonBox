@@ -106,12 +106,10 @@ no sea final.
 
 ### Pendientes anotados para specs futuros
 
-- **003 (opcional, al final, US5):** header `Idempotency-Key` en
-  `POST /uploads` para que un reintento por respuesta perdida no cree dos
-  uploads (columna con índice único; si la clave ya existe, devolver el upload
-  existente; dos envíos simultáneos: el índice deja pasar uno). Si no se llega,
-  va a "Limitaciones conocidas". El doble clic lo evita el frontend (007)
-  deshabilitando el botón con el `isPending` de React Query.
+- **Idempotency-Key (hecho en el 003, US5):** columna `idempotencyKey` con índice
+  único y value object `IdempotencyKey`. Una clave repetida devuelve el upload
+  existente; si dos envíos chocan, el que pierde devuelve el ganador. El doble
+  clic igual se evita en el frontend (007) deshabilitando el botón con `isPending`.
 - **005:** si el upload ya está en un estado final (COMPLETED o FAILED), no
   procesar y borrar el mensaje (entrega duplicada).
 - **005:** un error de negocio (CSV ilegible, faltan columnas) marca FAILED y
@@ -174,7 +172,7 @@ Fuera de Spec Kit, al final: diagrama AWS (`docs/arquitectura-aws.png`),
 ## Cómo se ejecuta
 
 ```bash
-docker compose up -d --wait # Postgres (desde la raíz)
+docker compose up -d --wait # Postgres y LocalStack 4.14.0 (desde la raíz)
 cd backend
 npm install                 # también genera el cliente de Prisma
 npm run db:deploy           # aplica las migraciones existentes
@@ -185,11 +183,17 @@ npm install
 npm run dev                 # frontend, terminal 3
 ```
 
+- Variables: copiar al `backend/.env` las de `backend/.env.example` (AWS, S3,
+  SQS, tamaño máximo y `TEST_S3_BUCKET`). Apuntan a LocalStack; para AWS real
+  ver la sección del README.
 - Cambio de schema: `npm run db:migrate -- --name <nombre>` (crea la migración y
-  regenera el cliente). No usar `prisma migrate reset` desde un agente: Prisma lo
-  bloquea sin consentimiento explícito y no hace falta.
+  regenera el cliente). Desde un agente no corre (terminal no interactiva): generar
+  el SQL con `npx prisma migrate diff --from-config-datasource --to-schema <schema>
+  --script`, guardarlo en `migrations/<timestamp>_<nombre>/migration.sql`, y correr
+  `npm run db:deploy` y `npx prisma generate`. No usar `prisma migrate reset`.
 - Tests: `npm run test:unit` (sin Docker), `npm run test:integration` (base
-  `document_processing_test`, se crea y migra sola) y `npm test` (todo).
+  `document_processing_test`, se crea y migra sola, y LocalStack) y `npm test`
+  (todo). Verificar con el código de salida de Jest, no con un grep del resumen.
 
 ## Qué evalúan (para priorizar)
 
