@@ -143,8 +143,8 @@ formas.
 
 - [X] T010 Agregar a `CsvParserService.test.ts` el test de SC-003: genera un CSV de 10 MB con filas válidas (como en research §7), lo procesa y comprueba que tarda menos de 10 s y que `totalRows` coincide con las filas generadas. Timeout propio de 30 s. Commit.
 - [X] T011 Recorrer [quickstart.md](quickstart.md): `npm run test:unit` (código de salida 0), `npx tsc --noEmit` y la prueba a mano con `npx tsx`. Corregir la guía si algún comando o salida no coincide.
-- [ ] T012 [P] Actualizar `README.md`: qué hace el parser, el formato que acepta (UTF-8, coma, encabezado, cantidad estricta), los errores de archivo y de fila, y las decisiones probadas (biblioteca, `\r\n`, línea de inicio, comillas). Actualizar en `CLAUDE.md` los pendientes del 005 (estado si todas las filas son inválidas y dónde se guardan los errores por fila).
-- [ ] T013 [P] Actualizar `USO-DE-IA.md`: implementación del 004 (qué generó la IA, qué se corrigió) y la línea del parser en "¿Qué Generé con IA?".
+- [X] T012 [P] Actualizar `README.md`: qué hace el parser, el formato que acepta (UTF-8, coma, encabezado, cantidad estricta), los errores de archivo y de fila, y las decisiones probadas (biblioteca, `\r\n`, línea de inicio, comillas). Actualizar en `CLAUDE.md` los pendientes del 005 (estado si todas las filas son inválidas y dónde se guardan los errores por fila).
+- [X] T013 [P] Actualizar `USO-DE-IA.md`: implementación del 004 (qué generó la IA, qué se corrigió) y la línea del parser en "¿Qué Generé con IA?".
 
 ---
 
