@@ -59,7 +59,7 @@ integración.
   - `model ActivityData`: los campos de la consigna, con `date DateTime @db.Date`, la relación con `Upload` y `@@index([uploadId])`.
 
   Con la base de desarrollo levantada, correr `npm run db:migrate -- --name init`. Verificar que se creó `DP/infrastructure/persistence/models/migrations/<timestamp>_init/migration.sql` con `CREATE TYPE "UploadStatus" AS ENUM`, la columna `"date" DATE` y el índice, y que `psql ... -c "\dt"` muestra `Upload` y `ActivityData`.
-- [ ] T008 Crear la infraestructura de integración:
+- [X] T008 Crear la infraestructura de integración:
   - `backend/tests/integration/globalSetup.ts`: carga `dotenv/config`, falla con un mensaje claro si falta `TEST_DATABASE_URL`, y corre `npx prisma migrate deploy` con `execSync`, `cwd` en `backend/` y `env: { ...process.env, DATABASE_URL: TEST_DATABASE_URL }`. Si falla, el mensaje sugiere `docker compose up -d --wait`.
   - `backend/tests/integration/testPrismaClient.ts`: exporta `createTestPrismaClient()`, que llama a `createPrismaClient(process.env.TEST_DATABASE_URL)`.
 
