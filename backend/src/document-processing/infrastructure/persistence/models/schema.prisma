@@ -25,6 +25,9 @@ model Upload {
   processedRows Int?
   failedRows    Int?
   errorMessage  String?
+  // Clave que manda el cliente por intento de subida: la misma clave no crea dos uploads.
+  // El índice único es lo que resuelve dos envíos simultáneos con la misma clave.
+  idempotencyKey String?       @unique
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 

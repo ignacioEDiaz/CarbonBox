@@ -14,6 +14,7 @@ const record: UploadRecord = {
   processedRows: 8,
   failedRows: 2,
   errorMessage: null,
+  idempotencyKey: null,
   createdAt: new Date("2026-01-01T10:00:00.000Z"),
   updatedAt: new Date("2026-01-01T10:05:00.000Z"),
 };
@@ -32,6 +33,12 @@ describe("PrismaUploadMapper", () => {
 
   it("toPersistence(toDomain(registro)) devuelve el mismo registro", () => {
     expect(PrismaUploadMapper.toPersistence(PrismaUploadMapper.toDomain(record))).toEqual(record);
+  });
+
+  it("la ida y vuelta conserva la clave de idempotencia", () => {
+    const withKey = { ...record, idempotencyKey: "abc-123" };
+
+    expect(PrismaUploadMapper.toPersistence(PrismaUploadMapper.toDomain(withKey))).toEqual(withKey);
   });
 
   it("un upload reconstruido conserva sus reglas: COMPLETED no vuelve a PROCESSING", () => {

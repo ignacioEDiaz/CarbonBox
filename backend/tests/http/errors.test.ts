@@ -5,6 +5,7 @@ import { ValidationError } from "../../src/shared/domain/errors";
 import { adaptRoute } from "../../src/shared/infrastructure/http/adaptRoute";
 import { BaseController } from "../../src/shared/infrastructure/http/BaseController";
 import { IHttpResponse } from "../../src/shared/infrastructure/http/IHttpResponse";
+import { testConfig } from "../support/testConfig";
 
 // Controller de prueba cuyo handler "devolvió" un error de validación
 class FailingController extends BaseController {
@@ -16,7 +17,7 @@ class FailingController extends BaseController {
 let app: App;
 
 beforeEach(() => {
-  const container = buildContainer({ port: 0, database: { url: "postgresql://u:p@localhost:1/db" } });
+  const container = buildContainer(testConfig());
   app = new App(container, { logger: false });
 });
 

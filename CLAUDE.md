@@ -52,10 +52,12 @@ después se ven los resultados.
 
 **API (rápido), dentro de `CreateUploadCommandHandler`:**
 
-1. Valida el nombre con `FileName` (debe terminar en `.csv`).
+1. Valida el nombre con `FileName` (debe terminar en `.csv`) y el encabezado
+   (solo la primera línea: `category,amount,unit,date`).
 2. Guarda el archivo crudo, sin parsear (`IFileStorage`).
 3. Crea el `Upload` con estado `PENDING` y lo persiste.
-4. Publica el mensaje `{ uploadId }` en la cola.
+4. Publica el mensaje `{ uploadId }` en la cola. Si falla, marca el upload
+   `FAILED` ("No se pudo encolar el archivo para procesarlo") y responde error.
 5. Responde `{ id, status, fileName, createdAt }`.
 
 **Worker (lento, proceso aparte, `npm run worker`):**
@@ -77,31 +79,37 @@ no sea final.
   los lista al revés, pero así el worker nunca busca un upload que todavía no
   existe. Documentarlo en el README.
 - **El mensaje lleva solo el `uploadId`**, no el archivo.
-- **La API no parsea.** Solo valida lo instantáneo (hay archivo, extensión
-  `.csv`). Un CSV con contenido inválido se sube bien y falla después en el
-  worker.
+- **La API no parsea las filas.** Solo valida lo instantáneo: hay archivo, no
+  está vacío, pesa hasta 10 MB, extensión `.csv` y el encabezado (solo la
+  primera línea; ignora mayúsculas, espacios, `\r\n` y BOM). Un CSV con filas
+  inválidas se sube bien y falla después en el worker. La regla del encabezado
+  vive en un solo lugar y la reutiliza el parser del spec 004.
 - **El archivo original se conserva** después de procesar: permite reintentar y
   auditar. En producción se limpiaría con lifecycle policies de S3.
 - **Las transiciones de estado viven en la entidad `Upload`**
   (`PENDING -> PROCESSING -> COMPLETED | FAILED`); las inválidas se rechazan.
-
+  Desde el spec 003 también `PENDING -> FAILED`, para el upload que no se pudo
+  encolar: así ninguno queda en PENDING para siempre.
 - **Idempotencia del procesamiento por `uploadId`** (spec 002). `PROCESSING ->
   PROCESSING` se acepta como reintento, y guardar las filas de un upload
   reemplaza las de un intento anterior (todo o nada). Procesar dos veces el
   mismo upload da el mismo resultado.
 
-### Decisión pendiente
-
-- **Implementación de la cola.** El mock con array en memoria de la consigna no
-  sirve: la API y el worker son procesos separados y no comparten memoria.
-  Opciones: LocalStack (SQS real, permite DLQ y reintentos) o una tabla en
-  PostgreSQL que haga de cola. Definir antes del spec 003.
+- **Cola y storage: SQS y S3 con LocalStack** (spec 003). El mock con array en
+  memoria no sirve porque la API y el worker son procesos separados. En local
+  se usa LocalStack en Docker; para pasar a AWS solo cambia la configuración
+  (endpoint y credenciales), no el código. Igual quedan detrás de interfaces
+  (`IFileStorage`, `IMessagePublisher`, `IMessageConsumer`) para testear los
+  handlers con dobles. Se descartó una tabla de Postgres como cola: habría que
+  programar a mano el visibility timeout y el contador de entregas que SQS ya
+  trae, y después reemplazarla.
 
 ### Pendientes anotados para specs futuros
 
-- **003 (opcional):** header `Idempotency-Key` en `POST /uploads` para que un
-  doble clic o un reintento del frontend no cree dos uploads (columna con índice
-  único; si la clave ya existe, devolver el upload existente).
+- **Idempotency-Key (hecho en el 003, US5):** columna `idempotencyKey` con índice
+  único y value object `IdempotencyKey`. Una clave repetida devuelve el upload
+  existente; si dos envíos chocan, el que pierde devuelve el ganador. El doble
+  clic igual se evita en el frontend (007) deshabilitando el botón con `isPending`.
 - **005:** si el upload ya está en un estado final (COMPLETED o FAILED), no
   procesar y borrar el mensaje (entrega duplicada).
 - **005:** un error de negocio (CSV ilegible, faltan columnas) marca FAILED y
@@ -164,7 +172,7 @@ Fuera de Spec Kit, al final: diagrama AWS (`docs/arquitectura-aws.png`),
 ## Cómo se ejecuta
 
 ```bash
-docker compose up -d --wait # Postgres (desde la raíz)
+docker compose up -d --wait # Postgres y LocalStack 4.14.0 (desde la raíz)
 cd backend
 npm install                 # también genera el cliente de Prisma
 npm run db:deploy           # aplica las migraciones existentes
@@ -175,11 +183,17 @@ npm install
 npm run dev                 # frontend, terminal 3
 ```
 
+- Variables: copiar al `backend/.env` las de `backend/.env.example` (AWS, S3,
+  SQS, tamaño máximo y `TEST_S3_BUCKET`). Apuntan a LocalStack; para AWS real
+  ver la sección del README.
 - Cambio de schema: `npm run db:migrate -- --name <nombre>` (crea la migración y
-  regenera el cliente). No usar `prisma migrate reset` desde un agente: Prisma lo
-  bloquea sin consentimiento explícito y no hace falta.
+  regenera el cliente). Desde un agente no corre (terminal no interactiva): generar
+  el SQL con `npx prisma migrate diff --from-config-datasource --to-schema <schema>
+  --script`, guardarlo en `migrations/<timestamp>_<nombre>/migration.sql`, y correr
+  `npm run db:deploy` y `npx prisma generate`. No usar `prisma migrate reset`.
 - Tests: `npm run test:unit` (sin Docker), `npm run test:integration` (base
-  `document_processing_test`, se crea y migra sola) y `npm test` (todo).
+  `document_processing_test`, se crea y migra sola, y LocalStack) y `npm test`
+  (todo). Verificar con el código de salida de Jest, no con un grep del resumen.
 
 ## Qué evalúan (para priorizar)
 

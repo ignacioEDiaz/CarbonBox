@@ -1,5 +1,6 @@
 import { Upload } from "../../../../../src/document-processing/domain/entities/Upload";
 import { FileName } from "../../../../../src/document-processing/domain/value-objects/FileName";
+import { IdempotencyKey } from "../../../../../src/document-processing/domain/value-objects/IdempotencyKey";
 import { UploadStatus } from "../../../../../src/document-processing/domain/value-objects/UploadStatus";
 import { ValidationError } from "../../../../../src/shared/domain/errors";
 
@@ -64,6 +65,26 @@ describe("Upload.create", () => {
   });
 });
 
+describe("Upload.create: clave de idempotencia (opcional)", () => {
+  it("sin clave, queda en null", () => {
+    expect(newUpload().idempotencyKey).toBeNull();
+  });
+
+  it("guarda la clave ya validada que manda el cliente", () => {
+    const key = IdempotencyKey.create("abc-123");
+    if (key.isLeft()) throw key.value;
+
+    const result = Upload.create({
+      fileName: validFileName(),
+      fileUrl: "uploads/datos.csv",
+      userId: "user-123",
+      idempotencyKey: key.value,
+    });
+
+    expect(result.isRight() && result.value.idempotencyKey).toBe("abc-123");
+  });
+});
+
 describe("transiciones válidas", () => {
   it("PENDING -> PROCESSING y actualiza updatedAt", () => {
     const upload = newUpload();
@@ -92,6 +113,14 @@ describe("transiciones válidas", () => {
     expect([upload.totalRows, upload.processedRows, upload.failedRows]).toEqual([10, 8, 2]);
   });
 
+  it("PENDING -> FAILED guarda el mensaje de error (no se pudo encolar)", () => {
+    const upload = uploadIn("PENDING");
+
+    expect(upload.markAsFailed("No se pudo encolar el archivo para procesarlo").isRight()).toBe(true);
+    expect(upload.status.equals(UploadStatus.FAILED)).toBe(true);
+    expect(upload.errorMessage).toBe("No se pudo encolar el archivo para procesarlo");
+  });
+
   it("PROCESSING -> FAILED guarda el mensaje de error", () => {
     const upload = uploadIn("PROCESSING");
 
@@ -115,7 +144,6 @@ function attemptTransition(upload: Upload, to: "PROCESSING" | "COMPLETED" | "FAI
 describe("transiciones inválidas: se rechazan y el upload no cambia", () => {
   it.each([
     ["PENDING", "COMPLETED"],
-    ["PENDING", "FAILED"],
     ["COMPLETED", "PROCESSING"],
     ["COMPLETED", "COMPLETED"],
     ["COMPLETED", "FAILED"],

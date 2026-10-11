@@ -3,6 +3,7 @@ import { AggregateRoot } from "../../../shared/domain/AggregateRoot";
 import { Either } from "../../../shared/domain/Either";
 import { ValidationError } from "../../../shared/domain/errors";
 import { FileName } from "../value-objects/FileName";
+import { IdempotencyKey } from "../value-objects/IdempotencyKey";
 import { UploadStatus } from "../value-objects/UploadStatus";
 
 export type UploadProps = {
@@ -15,6 +16,7 @@ export type UploadProps = {
   processedRows: number | null;
   failedRows: number | null;
   errorMessage: string | null;
+  idempotencyKey: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -29,6 +31,7 @@ type NewUpload = {
   fileName: FileName;
   fileUrl: string;
   userId: string;
+  idempotencyKey?: IdempotencyKey | null; // la manda el cliente para no crear dos uploads al reintentar
 };
 
 function areValidCounts({ totalRows, processedRows, failedRows }: RowCounts): boolean {
@@ -44,7 +47,7 @@ export class Upload extends AggregateRoot {
     super(props.id);
   }
 
-  static create({ fileName, fileUrl, userId }: NewUpload): Either<ValidationError, Upload> {
+  static create({ fileName, fileUrl, userId, idempotencyKey = null }: NewUpload): Either<ValidationError, Upload> {
     if (fileUrl.trim() === "") {
       return Either.left(new ValidationError("La ubicación del archivo no puede estar vacía"));
     }
@@ -60,6 +63,7 @@ export class Upload extends AggregateRoot {
         processedRows: null,
         failedRows: null,
         errorMessage: null,
+        idempotencyKey: idempotencyKey?.value ?? null,
         createdAt: now,
         updatedAt: now,
       }),
@@ -101,6 +105,10 @@ export class Upload extends AggregateRoot {
 
   get errorMessage(): string | null {
     return this.props.errorMessage;
+  }
+
+  get idempotencyKey(): string | null {
+    return this.props.idempotencyKey;
   }
 
   get createdAt(): Date {

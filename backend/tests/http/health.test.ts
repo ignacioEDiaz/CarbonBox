@@ -1,10 +1,11 @@
 import { asValue } from "awilix";
 import { App } from "../../src/main/App";
 import { buildContainer } from "../../src/main/container";
+import { testConfig } from "../support/testConfig";
 
 // App real con el checker de la base reemplazado por un doble: no hace falta Postgres
 function buildApp(isDatabaseUp: boolean): App {
-  const container = buildContainer({ port: 0, database: { url: "postgresql://u:p@localhost:1/db" } });
+  const container = buildContainer(testConfig());
   container.register({ databaseHealthChecker: asValue({ isUp: async () => isDatabaseUp }) });
   return new App(container, { logger: false });
 }

@@ -7,6 +7,15 @@ export class ValidationError extends Error {
   }
 }
 
+// Dos subidas con la misma clave de idempotencia: la segunda no se guarda. No llega al cliente:
+// el handler la atrapa y responde con el upload que ganó.
+export class DuplicateIdempotencyKeyError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DuplicateIdempotencyKeyError";
+  }
+}
+
 export class NotFoundError extends Error {
   constructor(message: string) {
     super(message);

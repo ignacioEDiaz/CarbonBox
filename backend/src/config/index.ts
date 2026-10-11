@@ -11,6 +11,23 @@ convict.addFormat({
   },
 });
 
+// Las variables de entorno llegan como texto: estos formatos las convierten a número y exigen un entero
+function integerFormat(name: string, min: number, max: number, rule: string): convict.Format {
+  return {
+    name,
+    coerce: (value: unknown) => Number(value),
+    validate: (value: unknown) => {
+      if (typeof value !== "number" || !Number.isInteger(value) || value < min || value > max) {
+        throw new Error(rule);
+      }
+    },
+  };
+}
+
+// 43200 s (12 h) es el máximo que acepta SQS para el tiempo de ocultamiento
+convict.addFormat(integerFormat("visibility-seconds", 0, 43200, "debe ser un entero entre 0 y 43200"));
+convict.addFormat(integerFormat("positive-int", 1, Number.MAX_SAFE_INTEGER, "debe ser un entero mayor que 0"));
+
 const schema: convict.Schema<IConvictProps> = {
   port: {
     doc: "Puerto HTTP del servicio",
@@ -25,6 +42,51 @@ const schema: convict.Schema<IConvictProps> = {
       default: "",
       env: "DATABASE_URL",
       sensitive: true, // incluye la contraseña: Convict no la muestra
+    },
+  },
+  // Las credenciales de AWS no están acá: las lee el SDK de AWS_ACCESS_KEY_ID y AWS_SECRET_ACCESS_KEY
+  aws: {
+    region: {
+      doc: "Región de AWS",
+      format: "required-string",
+      default: "us-east-1",
+      env: "AWS_REGION",
+    },
+    endpoint: {
+      doc: "Endpoint de S3 y SQS. Vacío para AWS real; http://localhost:4566 para LocalStack",
+      format: String,
+      default: "",
+      env: "AWS_ENDPOINT_URL",
+    },
+  },
+  storage: {
+    bucket: {
+      doc: "Bucket de S3 donde se guardan los archivos subidos",
+      format: "required-string",
+      default: "",
+      env: "S3_BUCKET",
+    },
+  },
+  queue: {
+    url: {
+      doc: "URL de la cola de SQS donde se publican los uploads a procesar",
+      format: "required-string",
+      default: "",
+      env: "SQS_QUEUE_URL",
+    },
+    visibilityTimeoutSeconds: {
+      doc: "Segundos que un mensaje recibido queda oculto para los demás consumidores",
+      format: "visibility-seconds",
+      default: 60,
+      env: "SQS_VISIBILITY_TIMEOUT_SECONDS",
+    },
+  },
+  upload: {
+    maxFileSizeMb: {
+      doc: "Tamaño máximo de un archivo subido, en MB",
+      format: "positive-int",
+      default: 10,
+      env: "UPLOAD_MAX_FILE_SIZE_MB",
     },
   },
 };

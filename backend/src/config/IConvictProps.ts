@@ -3,4 +3,18 @@ export interface IConvictProps {
   database: {
     url: string;
   };
+  aws: {
+    region: string;
+    endpoint: string; // "" = AWS real; http://localhost:4566 = LocalStack
+  };
+  storage: {
+    bucket: string;
+  };
+  queue: {
+    url: string;
+    visibilityTimeoutSeconds: number;
+  };
+  upload: {
+    maxFileSizeMb: number;
+  };
 }

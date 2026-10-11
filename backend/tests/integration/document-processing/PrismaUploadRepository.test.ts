@@ -1,8 +1,10 @@
 import { randomUUID } from "node:crypto";
 import { Upload } from "../../../src/document-processing/domain/entities/Upload";
 import { FileName } from "../../../src/document-processing/domain/value-objects/FileName";
+import { IdempotencyKey } from "../../../src/document-processing/domain/value-objects/IdempotencyKey";
 import { UploadStatus } from "../../../src/document-processing/domain/value-objects/UploadStatus";
 import { PrismaUploadRepository } from "../../../src/document-processing/infrastructure/persistence/repositories/PrismaUploadRepository";
+import { DuplicateIdempotencyKeyError } from "../../../src/shared/domain/errors";
 import { createTestPrismaClient } from "../testPrismaClient";
 
 const prisma = createTestPrismaClient();
@@ -91,5 +93,52 @@ describe("PrismaUploadRepository", () => {
     const reloaded = await saveAndReload(upload);
 
     expect(reloaded.markAsProcessing().isLeft()).toBe(true);
+  });
+});
+
+describe("PrismaUploadRepository: clave de idempotencia", () => {
+  function uploadWithKey(rawKey: string): Upload {
+    const fileName = FileName.create("datos.csv");
+    const idempotencyKey = IdempotencyKey.create(rawKey);
+    if (fileName.isLeft()) throw fileName.value;
+    if (idempotencyKey.isLeft()) throw idempotencyKey.value;
+    const upload = Upload.create({
+      fileName: fileName.value,
+      fileUrl: "uploads/datos.csv",
+      userId: "user-123",
+      idempotencyKey: idempotencyKey.value,
+    });
+    if (upload.isLeft()) throw upload.value;
+    return upload.value;
+  }
+
+  it("findByIdempotencyKey encuentra el upload guardado con esa clave", async () => {
+    const key = randomUUID();
+    const upload = uploadWithKey(key);
+    await repository.save(upload);
+
+    const found = await repository.findByIdempotencyKey(key);
+
+    expect(found?.id).toBe(upload.id);
+    expect(found?.idempotencyKey).toBe(key);
+  });
+
+  it("findByIdempotencyKey devuelve null si nadie usó la clave", async () => {
+    await expect(repository.findByIdempotencyKey(randomUUID())).resolves.toBeNull();
+  });
+
+  it("guardar otro upload con una clave ya usada lanza DuplicateIdempotencyKeyError", async () => {
+    const key = randomUUID();
+    await repository.save(uploadWithKey(key));
+
+    await expect(repository.save(uploadWithKey(key))).rejects.toBeInstanceOf(DuplicateIdempotencyKeyError);
+  });
+
+  it("volver a guardar el mismo upload (cambio de estado) no choca con su propia clave", async () => {
+    const upload = uploadWithKey(randomUUID());
+    await repository.save(upload);
+    upload.markAsProcessing();
+
+    await expect(repository.save(upload)).resolves.toBeUndefined();
   });
 });

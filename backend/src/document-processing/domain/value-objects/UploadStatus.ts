@@ -4,7 +4,7 @@ export type UploadStatusValue = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED
 
 // Desde cada estado, a cuáles se puede pasar. COMPLETED y FAILED son finales.
 const ALLOWED_TRANSITIONS: Record<UploadStatusValue, UploadStatusValue[]> = {
-  PENDING: ["PROCESSING"],
+  PENDING: ["PROCESSING", "FAILED"], // FAILED: no se pudo encolar (spec 003)
   PROCESSING: ["PROCESSING", "COMPLETED", "FAILED"], // PROCESSING -> PROCESSING: reintento
   COMPLETED: [],
   FAILED: [],
