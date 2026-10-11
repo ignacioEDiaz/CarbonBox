@@ -149,7 +149,7 @@ lectura básica (`\n`, sin comillas) y la fase D agrega los casos del estándar 
 |---|---|---|
 | Dependencia `csv-parse` 7.0.3 | Decisión del autor: leer el CSV según el estándar (comillas con comas, comillas escapadas, valores de varias líneas) | `split(",")` es más corto pero marca como inválida una fila correcta con una coma entre comillas |
 | `ICsvParserService.ts` (no está en el árbol de la consigna) | La constitución pide que los handlers dependan de interfaces; el handler del 005 lo va a recibir por constructor | Depender de la clase concreta viola el principio I y no deja usar un doble en el test del handler |
-| Normalizar `\r\n` a `\n` antes de parsear | Con `\r\n` y líneas en blanco, la biblioteca corre los números de línea (probado, research §3) | Dejarlo como viene da líneas equivocadas en los errores (falla SC-002) |
+| Normalizar `\r\n` a `\n` antes de parsear | Con `\r\n` dentro de un valor entre comillas, la biblioteca corre los números de línea (probado, research §3) | Dejarlo como viene da líneas equivocadas en los errores (falla SC-002) |
 | Calcular la línea de inicio con `on_record` | La biblioteca da la línea donde termina la fila, y una fila puede ocupar varias líneas (research §4) | `info` y `raw` obligan a forzar tipos; `raw` además tiene el tipo mal declarado |
 | Error de comillas "después de la línea N" en vez de la línea exacta | Con una comilla sin cerrar, la biblioteca solo informa el final del archivo (research §5) | No hay forma confiable de saber la línea exacta sin escribir un parser propio |
 

@@ -33,7 +33,7 @@ verifica con el código de salida de Jest, no con un `grep` del resumen.
 
 **Purpose**: la dependencia nueva.
 
-- [ ] T001 En `backend/` instalar con versión exacta: `npm install --save-exact csv-parse@7.0.3` (research §1). Verificar que `npm run test:unit` y `npx tsc --noEmit` siguen en verde.
+- [X] T001 En `backend/` instalar con versión exacta: `npm install --save-exact csv-parse@7.0.3` (research §1). Verificar que `npm run test:unit` y `npx tsc --noEmit` siguen en verde.
 
 ---
 
@@ -41,7 +41,7 @@ verifica con el código de salida de Jest, no con un `grep` del resumen.
 
 **Purpose**: el contrato que van a usar la implementación y el handler del 005.
 
-- [ ] T002 Crear `DP/application/services/ICsvParserService.ts` tal cual [contracts/csv-parser.md](contracts/csv-parser.md): tipos `RowError { line: number; message: string }` y `CsvParseResult { validRows: ActivityData[]; rowErrors: RowError[]; totalRows: number }`, e interfaz `ICsvParserService` con `parse(content: Uint8Array, uploadId: string): Either<ValidationError, CsvParseResult>`. Un comentario de una línea por tipo. `npx tsc --noEmit` en verde.
+- [X] T002 Crear `DP/application/services/ICsvParserService.ts` tal cual [contracts/csv-parser.md](contracts/csv-parser.md): tipos `RowError { line: number; message: string }` y `CsvParseResult { validRows: ActivityData[]; rowErrors: RowError[]; totalRows: number }`, e interfaz `ICsvParserService` con `parse(content: Uint8Array, uploadId: string): Either<ValidationError, CsvParseResult>`. Un comentario de una línea por tipo. `npx tsc --noEmit` en verde.
 
 **Checkpoint**: el contrato compila.
 
@@ -55,7 +55,7 @@ verifica con el código de salida de Jest, no con un `grep` del resumen.
 **Independent Test**: `npm run test:unit -- CsvParserService` con un CSV de filas buenas y malas
 mezcladas.
 
-- [ ] T003 [US1] Crear `TDP/application/services/CsvParserService.test.ts` con un helper `csv(...lines: string[]): Buffer` (une con `\n` y agrega el salto final) y un helper que hace `parse` y falla el test si devuelve `Left`. Escenarios de US1 (spec):
+- [X] T003 [US1] Crear `TDP/application/services/CsvParserService.test.ts` con un helper `csv(...lines: string[]): Buffer` (une con `\n` y agrega el salto final) y un helper que hace `parse` y falla el test si devuelve `Left`. Escenarios de US1 (spec):
   - Tres filas correctas: tres `ActivityData` con `category`, `amount` como número, `unit`, `date` y el `uploadId` recibido; `rowErrors` vacío; `totalRows` 3.
   - Categoría vacía en la línea 3: `{ line: 3, message: "La categoría no puede estar vacía" }` y las otras filas siguen.
   - `it.each` de cantidades: `0` (mensaje de `ActivityData`), `-5`, `abc`, `12,5` entre comillas, `1e3`, `0x10`, `+5`, `.5`, `5.`, `12kg` y vacía (mensaje de formato de data-model.md con el valor recibido).
@@ -69,14 +69,14 @@ mezcladas.
   - Mismo contenido dos veces: mismos valores (sin comparar `id`), mismos errores, mismo total.
 
   Verificar que falla (el módulo no existe).
-- [ ] T004 [US1] Implementar `DP/application/services/CsvParserService.ts` (`implements ICsvParserService`), con funciones cortas:
+- [X] T004 [US1] Implementar `DP/application/services/CsvParserService.ts` (`implements ICsvParserService`), con funciones cortas:
   - `readRows(text)`: `parse` de `csv-parse/sync` con `from_line: 2`, `skip_empty_lines: true`, `trim: true`, `relax_column_count: true` y `on_record` que junta `{ fields, line: context.lines }` en un array (research §2 y §4). El valor que devuelve `parse` no se usa.
   - `toActivityData(row, uploadId)`: cantidad de columnas → `parseAmount` → `ActivityData.create`; devuelve `Either<ValidationError, ActivityData>`.
   - `parseAmount(text)`: `/^\d+(\.\d+)?$/` y `Number()`, o `Left` con el mensaje de formato (research §8).
   - `parse(content, uploadId)`: por ahora decodifica con `TextDecoder` (sin `fatal`, lo agrega US2), llama a `readRows` y clasifica cada fila en `validRows` o `rowErrors`.
 
   T003 en verde. Commit.
-- [ ] T005 [US1] Registrar `csvParserService: asClass(CsvParserService).singleton()` en `DP/infrastructure/dependency-injection/DocumentProcessingModule.ts` y agregar a `backend/tests/unit/main/container.test.ts` que resuelve un `CsvParserService` (primero el test, verlo fallar). `npm run test:unit` en verde. Commit.
+- [X] T005 [US1] Registrar `csvParserService: asClass(CsvParserService).singleton()` en `DP/infrastructure/dependency-injection/DocumentProcessingModule.ts` y agregar a `backend/tests/unit/main/container.test.ts` que resuelve un `CsvParserService` (primero el test, verlo fallar). `npm run test:unit` en verde. Commit.
 
 **Checkpoint**: un CSV con filas rotas devuelve válidas y errores por separado (criterio de
 "listo" del plan general).
@@ -89,7 +89,7 @@ mezcladas.
 
 **Independent Test**: `npm run test:unit -- CsvParserService` con los archivos de US2.
 
-- [ ] T006 [US2] Agregar a `CsvParserService.test.ts` un `describe` de errores de archivo, cada uno comprobando que es `Left` con un `ValidationError` y el mensaje de data-model.md:
+- [X] T006 [US2] Agregar a `CsvParserService.test.ts` un `describe` de errores de archivo, cada uno comprobando que es `Left` con un `ValidationError` y el mensaje de data-model.md:
   - Encabezados incorrectos (`it.each`): otro orden, columna de más, columna de menos, separado por punto y coma, una fila de datos como primera línea. Mensaje de `CsvHeader`.
   - Encabezado `Category, Amount ,UNIT,date`, con `\r\n` y con BOM (`﻿`): se acepta (`Right`).
   - Solo el encabezado; encabezado y líneas vacías: `El archivo no tiene filas de datos: solo trae el encabezado`.
@@ -99,7 +99,7 @@ mezcladas.
   - Texto después de la comilla de cierre (`"abc"x,1,kWh,2024-01-01`): `... después de la línea 1`.
 
   Verificar que fallan.
-- [ ] T007 [US2] Implementar en `CsvParserService.ts`, en el orden de research §9:
+- [X] T007 [US2] Implementar en `CsvParserService.ts`, en el orden de research §9:
   - `decodeUtf8(content)`: `new TextDecoder("utf-8", { fatal: true })`; si lanza `TypeError`, `Left` con el mensaje de UTF-8 (research §6).
   - `CsvHeader.fromContent(content)`: si es `Left`, se devuelve tal cual (FR-003).
   - En `readRows`, capturar solo `CsvError` y devolver `Left` con `después de la línea N`, donde N es el `line` final de la última fila leída o 1 (research §5). Cualquier otro error se relanza. `readRows` pasa a devolver `Either`.
@@ -119,7 +119,7 @@ números de línea correctos.
 **Independent Test**: `npm run test:unit -- CsvParserService` con el mismo contenido en varias
 formas.
 
-- [ ] T008 [US3] Agregar a `CsvParserService.test.ts` un `describe` del formato estándar:
+- [X] T008 [US3] Agregar a `CsvParserService.test.ts` un `describe` del formato estándar:
   - `"Oficina, piso 2"`: válida, categoría `Oficina, piso 2`.
   - `"Sala ""A"""`: válida, categoría `Sala "A"`.
   - Comilla suelta en un valor sin comillas (`Sala "A`): válida, categoría `Sala "A` (research §5).
@@ -127,8 +127,8 @@ formas.
   - Fila con un valor entre comillas que ocupa las líneas 3 a 5 y una fila rota en la línea 6: la de varias líneas se informa en la línea 3 si tiene error, y la siguiente en la 6 (research §4).
   - Líneas vacías y de solo espacios en el medio y al final: no cuentan en `totalRows`.
 
-  Verificar cuáles fallan (se espera: `\r\n` con líneas vacías, la fila de varias líneas y la comilla suelta).
-- [ ] T009 [US3] Implementar en `CsvParserService.ts`:
+  Verificar cuáles fallan (se espera: `\r\n` con líneas vacías, la fila de varias líneas y la comilla suelta). Resultado real: `\r\n` con líneas vacías ya pasaba; el corrimiento aparece con `\r\n` dentro de una fila de varias líneas, así que ese test se hizo con `\n` y con `\r\n` (research §3 corregido).
+- [X] T009 [US3] Implementar en `CsvParserService.ts`:
   - Reemplazar `\r\n` por `\n` antes de `readRows` (research §3).
   - `relax_quotes: true` en las opciones (research §2).
   - La línea de cada fila pasa a ser la de inicio: `context.lines` menos los saltos de línea dentro de sus valores (research §4), en una función `startLine(fields, context)` con su comentario.

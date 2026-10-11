@@ -47,11 +47,15 @@ es una fila de 4 valores vacíos (va a fallar por categoría vacía), como pide 
 ## 3. Saltos de línea de Windows: normalizar antes de parsear
 
 - **Decision**: reemplazar `\r\n` por `\n` en el texto antes de dárselo a `csv-parse`.
-- **Rationale**: probado con el mismo contenido en `\n` y en `\r\n`. Con `\r\n` y una línea en
-  blanco en el medio, `csv-parse` detecta `\r` como separador de filas, el `\n` siguiente lo
-  come `trim` y **los números de línea se corren en uno** a partir de esa línea. Normalizado,
-  los dos casos dan exactamente el mismo resultado (SC-004) y las líneas coinciden con el
-  archivo (SC-002).
+- **Rationale**: probado con el mismo contenido en `\n` y en `\r\n`. Con `\r\n` **dentro de un
+  valor entre comillas** (una fila de varias líneas), `csv-parse` cuenta cada uno de esos saltos
+  como dos líneas y **los números de línea se corren** desde esa fila: una fila que empieza en
+  la línea 3 y ocupa tres líneas se informaba en la 7. Normalizado, los dos casos dan
+  exactamente el mismo resultado (SC-004) y las líneas coinciden con el archivo (SC-002).
+- **Corrección durante la implementación:** al principio se anotó que el corrimiento lo
+  causaban las líneas en blanco. El test de US3 mostró que con `\r\n` y líneas en blanco, sin
+  valores de varias líneas, las líneas salen bien: en la prueba original estaban las dos cosas
+  juntas y se atribuyó mal la causa. La decisión no cambia.
 - **Alternatives considered**: `record_delimiter: ["\r\n", "\n"]` en las opciones. Funciona en
   teoría, pero normalizar es una línea que se entiende sin conocer la biblioteca, y además deja
   igual los saltos dentro de valores entre comillas.
