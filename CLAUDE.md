@@ -119,7 +119,7 @@ no sea final.
   en PROCESSING para siempre.
 - **005:** el visibility timeout tiene que ser más largo que el procesamiento,
   para que dos workers no tomen el mismo upload a la vez.
-- **005 (decidido por el autor):** si ninguna fila es válida, el upload termina
+- **005 (hecho):** si ninguna fila es válida, el upload termina
   `FAILED` ("Ninguna de las N filas es válida: revisá los errores por fila").
   Los errores por fila se guardan en una tabla nueva `RowError` (`uploadId`,
   `line`, `message`) con `IRowErrorRepository.saveForUpload` (reemplaza, como
