@@ -116,8 +116,11 @@ ninguna fila.
 4. **Given** un archivo que no es texto UTF-8 válido (por ejemplo, guardado con otra
    codificación o un binario renombrado), **When** se procesa, **Then** devuelve un error de
    archivo que pide guardarlo como CSV UTF-8.
-5. **Given** un archivo con un valor entre comillas que nunca se cierra, **When** se procesa,
-   **Then** devuelve un error de archivo que indica la línea donde empieza ese valor.
+5. **Given** un archivo con un valor entre comillas que nunca se cierra, o con texto pegado
+   después de la comilla que cierra (`"abc"x`), **When** se procesa, **Then** devuelve un error
+   de archivo que dice que hay comillas mal cerradas después de la última línea que se pudo
+   leer bien. (Una comilla sin cerrar se "come" el resto del archivo, así que no se puede saber
+   con certeza en qué fila termina.)
 6. **Given** cualquiera de los casos anteriores, **When** se revisa el resultado, **Then** no
    trae ninguna fila válida ni errores por fila: solo el error de archivo.
 
@@ -154,6 +157,8 @@ comillas, `\n` y `\r\n`, con líneas vacías) y comprobar que el resultado es id
   sale como error (categoría vacía).
 - **Valor entre comillas que ocupa varias líneas**: el estándar lo permite. La fila cuenta una
   vez, y si tiene error se informa la línea donde empieza.
+- **Comilla suelta dentro de un valor sin comillas** (`Sala "A`): se toma como parte del texto;
+  la fila se valida normalmente. No hay ambigüedad, así que no vale la pena rechazarla.
 - **Cantidad con ceros a la izquierda** (`007`): es válida y vale 7. **Sin dígito antes o
   después del punto** (`.5`, `5.`): se rechaza por formato.
 - **Cantidad muy grande pero escrita solo con dígitos**: se acepta mientras sea un número
@@ -184,8 +189,9 @@ comillas, `\n` y `\r\n`, con líneas vacías) y comprobar que el resultado es id
   no cuentan como filas ni como errores.
 - **FR-006**: MUST devolver un error de archivo si después del encabezado no queda ninguna fila de
   datos.
-- **FR-007**: MUST devolver un error de archivo, indicando la línea, si un valor entre comillas
-  nunca se cierra.
+- **FR-007**: MUST devolver un error de archivo si las comillas están mal cerradas (un valor entre
+  comillas que nunca se cierra o texto después de la comilla de cierre), indicando después de
+  qué línea está el problema.
 - **FR-008**: Cada fila con una cantidad de columnas distinta de 4 MUST registrarse como error con
   un motivo que diga cuántas columnas se esperaban y cuántas llegaron.
 - **FR-009**: La cantidad MUST aceptarse solo en formato estricto (dígitos y un punto decimal
@@ -219,7 +225,7 @@ comillas, `\n` y `\r\n`, con líneas vacías) y comprobar que el resultado es id
 - **Error de fila**: número de línea del archivo y motivo. No es un error del sistema: es
   información para la persona que subió el archivo.
 - **Error de archivo**: un único motivo que impide procesar el archivo entero (codificación,
-  encabezado, sin filas, comillas sin cerrar).
+  encabezado, sin filas, comillas mal cerradas).
 
 ## Success Criteria *(mandatory)*
 
@@ -234,8 +240,8 @@ comillas, `\n` y `\r\n`, con líneas vacías) y comprobar que el resultado es id
   desarrollo.
 - **SC-004**: El mismo contenido escrito con o sin comillas, con saltos de línea de Windows o de
   Unix y con o sin líneas vacías da el mismo resultado.
-- **SC-005**: Los cinco problemas de archivo entero (codificación, encabezado, sin filas de datos,
-  comillas sin cerrar y encabezado separado por punto y coma) devuelven un solo error claro y
+- **SC-005**: Los problemas de archivo entero (codificación, encabezado, encabezado separado por
+  punto y coma, sin filas de datos y comillas mal cerradas) devuelven un solo error claro y
   ninguna fila.
 - **SC-006**: Todos los escenarios de aceptación de este spec tienen una prueba automática que
   corre sin servicios externos, y todas pasan.
