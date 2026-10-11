@@ -15,7 +15,8 @@ cada parte tiene su spec, su plan y sus tareas en [`specs/`](specs/), y todas re
 | [001-base-del-proyecto](specs/001-base-del-proyecto/) | Postgres en Docker, servicio Fastify, `/health`, configuración, piezas compartidas | ✅ Completo |
 | [002-dominio-y-persistencia](specs/002-dominio-y-persistencia/) | Entidades `Upload` y `ActivityData`, estados, schema, migración y repositorios | ✅ Completo |
 | [003-subir-archivo](specs/003-subir-archivo/) | Subida de CSV a S3, upload en PENDING, aviso en SQS (LocalStack), consulta por id | ✅ Completo |
-| 004 a 007 | Parseo, worker, consultas, frontend | Pendiente |
+| [004-parseo-y-validacion](specs/004-parseo-y-validacion/) | `CsvParserService`: filas válidas, errores por fila con línea y motivo, errores de archivo | ✅ Completo (lo conecta el 005) |
+| 005 a 007 | Worker, consultas, frontend | Pendiente |
 
 ## Requisitos
 
@@ -48,7 +49,8 @@ curl -F "file=@datos.csv" http://localhost:3000/api/v1/uploads
 
 La guía completa de verificación, incluida la base caída, la persistencia y los errores de
 configuración, está en los quickstart de cada spec: [001](specs/001-base-del-proyecto/quickstart.md),
-[002](specs/002-dominio-y-persistencia/quickstart.md) y [003](specs/003-subir-archivo/quickstart.md).
+[002](specs/002-dominio-y-persistencia/quickstart.md), [003](specs/003-subir-archivo/quickstart.md)
+y [004](specs/004-parseo-y-validacion/quickstart.md).
 
 ## S3 y SQS: LocalStack en local, AWS después
 
@@ -144,6 +146,36 @@ COMPLETED y FAILED son finales. Guardar las filas de un upload **reemplaza** las
 anterior en una sola transacción, así que procesar dos veces el mismo upload da el mismo
 resultado (idempotencia por `uploadId`).
 
+## Formato del CSV y validaciones
+
+`CsvParserService` convierte el archivo subido en filas de `ActivityData`. Lo va a usar el
+worker (spec 005); hoy se prueba con sus tests unitarios
+([quickstart](specs/004-parseo-y-validacion/quickstart.md)).
+
+**Qué acepta:** texto UTF-8 (la opción "CSV UTF-8" de Excel), separado por comas, con el
+encabezado `category,amount,unit,date` en ese orden (sin importar mayúsculas, espacios, BOM ni
+saltos de línea de Windows). Los valores pueden ir entre comillas, con comas o comillas dobles
+adentro, como define el estándar CSV. Las líneas vacías se ignoran.
+
+**Errores de archivo** (no se procesa ninguna fila): no es UTF-8, el encabezado es otro (por
+ejemplo, separado por punto y coma), las comillas están mal cerradas o no hay filas de datos.
+
+**Errores de fila** (el resto del archivo se procesa igual): cada uno dice la línea del archivo
+donde empieza la fila, contando el encabezado como la 1, como en una planilla, y un único
+motivo:
+
+| Regla | Ejemplo rechazado |
+|---|---|
+| 4 columnas | `Gas,10,m3` |
+| `category` y `unit` no vacías | `,10,kWh,2024-03-01` |
+| `amount`: solo dígitos y punto decimal, mayor que cero | `12,5`, `1e3`, `-5`, `0`, `12kg` |
+| `date`: `YYYY-MM-DD` y un día que exista | `2024-02-31`, `31/01/2024` |
+
+Las reglas de la fila son las de la entidad `ActivityData` y la del encabezado es la de
+`CsvHeader`, la misma que usa la subida: el parser no las duplica. Decisiones, con lo que se
+probó de la biblioteca `csv-parse` antes de usarla:
+[research.md](specs/004-parseo-y-validacion/research.md).
+
 ## Arquitectura
 
 DDD + Clean Architecture + CQRS. Las dependencias apuntan hacia adentro:
@@ -178,6 +210,7 @@ Se respeta el árbol de carpetas de la consigna. Estos son los agregados y por q
 | `CsvHeader` e `IdempotencyKey` en `domain/value-objects/` | Reglas del negocio: el encabezado lo comparten la subida y el parser (spec 004) |
 | `shared/infrastructure/aws/createAwsClients.ts` | Un solo lugar arma los clientes de S3 y SQS (LocalStack o AWS según el endpoint) |
 | `localstack/ready.d/` y `.gitattributes` | Crean la cola y los buckets al arrancar; el `.sh` necesita fin de línea LF aunque se clone en Windows |
+| `application/services/ICsvParserService.ts` | El handler de procesamiento (spec 005) depende de esta interfaz y no de `CsvParserService` |
 
 Las decisiones técnicas, con sus alternativas descartadas, están en
 [research.md](specs/001-base-del-proyecto/research.md).
@@ -203,6 +236,13 @@ Las decisiones técnicas, con sus alternativas descartadas, están en
   limpiaría una *lifecycle policy* del bucket.
 - **El error de archivo demasiado grande (413) llega en inglés** (`request file too large`):
   lo genera Fastify y el manejador central lo pasa tal cual.
+- **El CSV tiene que ser UTF-8 y separado por comas.** Un archivo exportado de Excel en español
+  (punto y coma) o en otra codificación se rechaza con un mensaje que lo explica, en vez de
+  intentar adivinar el formato.
+- **Una fila con varios problemas informa uno solo**, el primero que encuentra. Alcanza para
+  corregirla, pero puede hacer falta más de una vuelta.
+- **Con comillas mal cerradas no se sabe la línea exacta:** una comilla abierta se come el resto
+  del archivo, así que el error dice "después de la línea N", la última fila leída bien.
 - **Los tests corren con `--experimental-vm-modules`.** `fastify.inject` depende de un paquete
   ESM puro (`cookie@2`) y Jest 30 solo puede cargarlo con esa bandera de Node (ver
   [research.md §3](specs/001-base-del-proyecto/research.md)).
