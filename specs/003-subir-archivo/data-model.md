@@ -127,7 +127,7 @@ export type UploadedFile = { fileName: string; content: Buffer };
 // handlers/CreateUploadCommandHandler.ts
 export type UploadReceipt = {
   id: string;
-  status: "PENDING";
+  status: UploadStatusValue;   // siempre "PENDING" en una subida aceptada
   fileName: string;
   createdAt: string;   // ISO 8601
 };
