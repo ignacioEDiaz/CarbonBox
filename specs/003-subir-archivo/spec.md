@@ -305,7 +305,9 @@ un solo upload, un solo archivo guardado y un solo aviso.
 
 - **FR-012**: Un aviso publicado DEBE quedar disponible para un proceso distinto del que lo
   publicó y DEBE sobrevivir al reinicio de cualquiera de los dos.
-- **FR-013**: Pedir un aviso DEBE entregar el más antiguo disponible, o ninguno si no hay.
+- **FR-013**: Pedir un aviso DEBE entregar un aviso disponible, en orden aproximado de
+  publicación (el más antiguo primero, sin garantía estricta), o ninguno si no hay. El
+  emulador local entrega en orden; la cola en la nube solo lo garantiza aproximadamente.
 - **FR-014**: Un aviso entregado DEBE quedar oculto durante un tiempo configurable. Mientras
   esté oculto NO DEBE entregarse a ningún consumidor.
 - **FR-015**: Un aviso entregado y no confirmado DEBE volver a estar disponible al vencer ese
@@ -315,7 +317,9 @@ un solo upload, un solo archivo guardado y un solo aviso.
 - **FR-017**: Confirmar un aviso DEBE eliminarlo definitivamente. Confirmar uno ya eliminado
   NO DEBE ser un error.
 - **FR-018**: Varios consumidores simultáneos NO DEBEN recibir el mismo aviso mientras está
-  oculto.
+  oculto. En la cola de la nube, la entrega es "al menos una vez" y excepcionalmente puede
+  repetirse; lo que protege de verdad es que procesar dos veces dé el mismo resultado
+  (spec 002).
 
 **Proveedores**
 
@@ -379,7 +383,8 @@ un solo upload, un solo archivo guardado y un solo aviso.
 - **SC-004**: consultar un upload responde en menos de 1 segundo, y el 100 % de las consultas
   con un identificador inexistente responden "no encontrado" sin error interno.
 - **SC-005**: con 20 consumidores simultáneos y 5 avisos, se entregan exactamente 5 avisos
-  distintos: ninguno se entrega dos veces mientras está oculto.
+  distintos: ninguno se entrega dos veces mientras está oculto (verificado contra el emulador
+  local; ver FR-018 para la nube).
 - **SC-006**: un aviso no confirmado vuelve a entregarse después del tiempo de ocultamiento,
   con el contador de entregas incrementado en 1.
 - **SC-007**: pasar del emulador local a la nube real requiere 0 cambios de código: solo
