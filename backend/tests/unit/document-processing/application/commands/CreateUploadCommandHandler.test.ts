@@ -1,7 +1,10 @@
 import { CreateUploadCommandHandler } from "../../../../../src/document-processing/application/commands/handlers/CreateUploadCommandHandler";
 import { CreateUploadCommand } from "../../../../../src/document-processing/application/commands/objects/CreateUploadCommand";
+import { Upload } from "../../../../../src/document-processing/domain/entities/Upload";
+import { FileName } from "../../../../../src/document-processing/domain/value-objects/FileName";
+import { IdempotencyKey } from "../../../../../src/document-processing/domain/value-objects/IdempotencyKey";
 import { UploadStatus } from "../../../../../src/document-processing/domain/value-objects/UploadStatus";
-import { ValidationError } from "../../../../../src/shared/domain/errors";
+import { DuplicateIdempotencyKeyError, ValidationError } from "../../../../../src/shared/domain/errors";
 import { IMessagePublisher } from "../../../../../src/shared/infrastructure/messaging/IMessagePublisher";
 import { CallLog } from "../../../../support/CallLog";
 import { FailingMessagePublisher } from "../../../../support/FailingMessagePublisher";
@@ -117,5 +120,84 @@ describe("CreateUploadCommandHandler: la cola no responde", () => {
     const [upload] = repository.all;
     expect(upload.status.equals(UploadStatus.FAILED)).toBe(true);
     expect(upload.errorMessage).toBe("No se pudo encolar el archivo para procesarlo");
+  });
+});
+
+// Simula la carrera: dos envíos con la misma clave buscan a la vez, ninguno encuentra y el
+// segundo choca con el índice único al guardar
+function uploadWithKey(rawKey: string): Upload {
+  const fileName = FileName.create("datos.csv");
+  const key = IdempotencyKey.create(rawKey);
+  if (fileName.isLeft()) throw fileName.value;
+  if (key.isLeft()) throw key.value;
+  const upload = Upload.create({ fileName: fileName.value, fileUrl: "memory/x.csv", userId: "user-123", idempotencyKey: key.value });
+  if (upload.isLeft()) throw upload.value;
+  return upload.value;
+}
+
+class RacingUploadRepository extends InMemoryUploadRepository {
+  private firstLookup = true;
+
+  async findByIdempotencyKey(idempotencyKey: string) {
+    if (this.firstLookup) {
+      this.firstLookup = false;
+      return null; // todavía no ve al ganador
+    }
+    return super.findByIdempotencyKey(idempotencyKey);
+  }
+
+  async save(upload: Upload) {
+    const winner = upload.idempotencyKey === null ? null : await super.findByIdempotencyKey(upload.idempotencyKey);
+    if (winner !== null && winner.id !== upload.id) {
+      throw new DuplicateIdempotencyKeyError("clave repetida");
+    }
+    return super.save(upload);
+  }
+}
+
+describe("CreateUploadCommandHandler: clave de idempotencia", () => {
+  const withKey = (key: string) =>
+    new CreateUploadCommand({ fileName: "datos.csv", content: Buffer.from(VALID_CSV) }, "user-123", key);
+
+  it("un reintento con la misma clave devuelve el mismo upload sin guardar ni publicar de nuevo", async () => {
+    const { handler, storage, queue, repository } = setup();
+
+    const first = await handler.execute(withKey("abc-123"));
+    const retry = await handler.execute(withKey("abc-123"));
+
+    expect(retry.isRight() && first.isRight() && retry.value).toEqual(first.isRight() && first.value);
+    expect([storage.files.size, queue.messages.length, repository.all.length]).toEqual([1, 1, 1]);
+  });
+
+  it("dos subidas con claves distintas crean dos uploads", async () => {
+    const { handler, repository } = setup();
+
+    await handler.execute(withKey("a"));
+    await handler.execute(withKey("b"));
+
+    expect(repository.all).toHaveLength(2);
+  });
+
+  it("una clave inválida es un error de validación y no guarda nada", async () => {
+    const { handler, log } = setup();
+
+    const result = await handler.execute(withKey("   "));
+
+    expect(result.value).toBeInstanceOf(ValidationError);
+    expect(log.calls).toEqual([]);
+  });
+
+  it("si pierde la carrera, devuelve el upload ganador y no publica otro mensaje", async () => {
+    const repository = new RacingUploadRepository();
+    const winner = uploadWithKey("abc-123");
+    await repository.save(winner); // el otro envío ya lo guardó
+    const queue = new InMemoryMessageQueue();
+    const handler = new CreateUploadCommandHandler(new InMemoryFileStorage(), repository, queue);
+
+    const result = await handler.execute(withKey("abc-123"));
+
+    expect(result.isRight() && result.value.id).toBe(winner.id);
+    expect(repository.all).toHaveLength(1);
+    expect(queue.messages).toEqual([]);
   });
 });

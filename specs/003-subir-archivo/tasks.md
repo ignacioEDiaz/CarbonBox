@@ -199,8 +199,8 @@ fases anteriores están terminadas.
 - [X] T038 [US5] Implementar: `idempotencyKey String? @unique` en `DP/infrastructure/persistence/models/schema.prisma` y `npm run db:migrate -- --name add_idempotency_key`; campo en `Upload` y en el mapper. T037 en verde.
 - [X] T039 [P] [US5] Tests de integración en `PrismaUploadRepository.test.ts`: `findByIdempotencyKey` encuentra por clave y devuelve `null` si no existe; guardar otro upload con la misma clave lanza `DuplicateIdempotencyKeyError`.
 - [X] T040 [US5] Implementar `findByIdempotencyKey` en `IUploadRepository` y `PrismaUploadRepository`, y en `save` traducir el `P2002` sobre `idempotencyKey` a `DuplicateIdempotencyKeyError` (nuevo en `backend/src/shared/domain/errors.ts`). Sumar el método a `InMemoryUploadRepository`. T039 en verde.
-- [ ] T041 [P] [US5] Tests del handler: con una clave ya usada devuelve el mismo comprobante sin guardar archivo ni publicar; ante `DuplicateIdempotencyKeyError` (carrera simulada con un repositorio doble) devuelve el comprobante del upload ganador; sin clave, el comportamiento de US1 no cambia.
-- [ ] T042 [US5] Implementar: `idempotencyKey` en `CreateUploadCommand`; el controller lo lee del header `idempotency-key` con un chequeo de tipo; el handler sigue research §14. Agregar a `uploads.test.ts` que dos `POST` con la misma clave devuelven el mismo `id`. T041 en verde.
+- [X] T041 [P] [US5] Tests del handler: con una clave ya usada devuelve el mismo comprobante sin guardar archivo ni publicar; ante `DuplicateIdempotencyKeyError` (carrera simulada con un repositorio doble) devuelve el comprobante del upload ganador; sin clave, el comportamiento de US1 no cambia.
+- [X] T042 [US5] Implementar: `idempotencyKey` en `CreateUploadCommand`; el controller lo lee del header `idempotency-key` con un chequeo de tipo; el handler sigue research §14. Agregar a `uploads.test.ts` que dos `POST` con la misma clave devuelven el mismo `id`. T041 en verde.
 
 **Checkpoint**: si esta fase no se hace, T043 la documenta como limitación.
 

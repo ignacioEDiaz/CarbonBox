@@ -1,12 +1,13 @@
 import { ICommandHandler } from "../../../../shared/application/ICommandHandler";
 import { Either } from "../../../../shared/domain/Either";
-import { ValidationError } from "../../../../shared/domain/errors";
+import { DuplicateIdempotencyKeyError, ValidationError } from "../../../../shared/domain/errors";
 import { IMessagePublisher } from "../../../../shared/infrastructure/messaging/IMessagePublisher";
 import { IFileStorage } from "../../../../shared/infrastructure/storage/IFileStorage";
 import { Upload } from "../../../domain/entities/Upload";
 import { IUploadRepository } from "../../../domain/repositories/IUploadRepository";
 import { CsvHeader } from "../../../domain/value-objects/CsvHeader";
 import { FileName } from "../../../domain/value-objects/FileName";
+import { IdempotencyKey } from "../../../domain/value-objects/IdempotencyKey";
 import { UploadStatusValue } from "../../../domain/value-objects/UploadStatus";
 import { CreateUploadCommand, UploadedFile } from "../objects/CreateUploadCommand";
 
@@ -20,7 +21,7 @@ export type UploadReceipt = {
 
 export const ENQUEUE_FAILED_MESSAGE = "No se pudo encolar el archivo para procesarlo";
 
-type ValidFile = { fileName: FileName; content: Buffer };
+type ValidUpload = { fileName: FileName; content: Buffer; idempotencyKey: IdempotencyKey | null };
 
 export class CreateUploadCommandHandler implements ICommandHandler<CreateUploadCommand, UploadReceipt> {
   constructor(
@@ -31,22 +32,47 @@ export class CreateUploadCommandHandler implements ICommandHandler<CreateUploadC
 
   // El upload se guarda antes de publicar: el worker nunca recibe el id de un upload que no existe
   async execute(command: CreateUploadCommand): Promise<Either<Error, UploadReceipt>> {
-    const fileOrError = validateFile(command.file);
-    if (fileOrError.isLeft()) {
-      return Either.left(fileOrError.value);
+    const validOrError = validateCommand(command);
+    if (validOrError.isLeft()) {
+      return Either.left(validOrError.value);
     }
-    const { fileName, content } = fileOrError.value;
+    const { fileName, content, idempotencyKey } = validOrError.value;
+
+    // Reintento con una clave ya usada: se devuelve el upload que ya existe
+    const existing = idempotencyKey === null ? null : await this.uploadRepository.findByIdempotencyKey(idempotencyKey.value);
+    if (existing !== null) {
+      return Either.right(toReceipt(existing));
+    }
 
     const location = await this.fileStorage.save(content);
-    const uploadOrError = Upload.create({ fileName, fileUrl: location, userId: command.userId });
+    const uploadOrError = Upload.create({ fileName, fileUrl: location, userId: command.userId, idempotencyKey });
     if (uploadOrError.isLeft()) {
       return Either.left(uploadOrError.value);
     }
-    const upload = uploadOrError.value;
-    await this.uploadRepository.save(upload);
-    await this.publishOrMarkAsFailed(upload);
+    const winner = await this.saveOrFindWinner(uploadOrError.value);
+    if (winner !== null) {
+      return Either.right(toReceipt(winner));
+    }
+    await this.publishOrMarkAsFailed(uploadOrError.value);
+    return Either.right(toReceipt(uploadOrError.value));
+  }
 
-    return Either.right(toReceipt(upload));
+  // Dos envíos simultáneos con la misma clave: el índice único deja pasar uno. El que pierde
+  // devuelve el upload ganador (que ya publica su propio mensaje). Devuelve null si se guardó.
+  private async saveOrFindWinner(upload: Upload): Promise<Upload | null> {
+    try {
+      await this.uploadRepository.save(upload);
+      return null;
+    } catch (error) {
+      if (!(error instanceof DuplicateIdempotencyKeyError) || upload.idempotencyKey === null) {
+        throw error;
+      }
+      const winner = await this.uploadRepository.findByIdempotencyKey(upload.idempotencyKey);
+      if (winner === null) {
+        throw error;
+      }
+      return winner;
+    }
   }
 
   // Si no se puede encolar, nadie va a procesar el upload: se marca FAILED para que no quede en
@@ -63,7 +89,22 @@ export class CreateUploadCommandHandler implements ICommandHandler<CreateUploadC
 }
 
 // Todo lo que se puede validar al instante, antes de guardar nada
-function validateFile(file: UploadedFile | null): Either<ValidationError, ValidFile> {
+function validateCommand(command: CreateUploadCommand): Either<ValidationError, ValidUpload> {
+  const fileOrError = validateFile(command.file);
+  if (fileOrError.isLeft()) {
+    return Either.left(fileOrError.value);
+  }
+  if (command.idempotencyKey === null) {
+    return Either.right({ ...fileOrError.value, idempotencyKey: null });
+  }
+  const keyOrError = IdempotencyKey.create(command.idempotencyKey);
+  if (keyOrError.isLeft()) {
+    return Either.left(keyOrError.value);
+  }
+  return Either.right({ ...fileOrError.value, idempotencyKey: keyOrError.value });
+}
+
+function validateFile(file: UploadedFile | null): Either<ValidationError, { fileName: FileName; content: Buffer }> {
   if (file === null) {
     return Either.left(new ValidationError('Falta el archivo: enviá un CSV en el campo "file"'));
   }

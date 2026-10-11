@@ -129,3 +129,26 @@ describe("GET /api/v1/uploads/:id", () => {
     await app.server.close();
   });
 });
+
+describe("POST /api/v1/uploads con Idempotency-Key", () => {
+  it("dos envíos con la misma clave devuelven el mismo upload y guardan un solo archivo", async () => {
+    const { app, storage, queue } = buildApp();
+    const send = async () => {
+      const body = await multipartBody({ fileName: "datos.csv", content: VALID_CSV });
+      return app.server.inject({
+        method: "POST",
+        url: "/api/v1/uploads",
+        payload: body.payload,
+        headers: { ...body.headers, "idempotency-key": "abc-123" },
+      });
+    };
+
+    const first = await send();
+    const retry = await send();
+
+    expect([first.statusCode, retry.statusCode]).toEqual([202, 202]);
+    expect(retry.json().id).toBe(first.json().id);
+    expect([storage.files.size, queue.messages.length]).toEqual([1, 1]);
+    await app.server.close();
+  });
+});

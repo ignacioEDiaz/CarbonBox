@@ -8,5 +8,6 @@ export class CreateUploadCommand {
   constructor(
     readonly file: UploadedFile | null, // null si la petición no trajo archivo
     readonly userId: string,
+    readonly idempotencyKey: string | null = null, // header Idempotency-Key, si vino
   ) {}
 }

@@ -218,7 +218,8 @@ model Upload {
 
 | Cambio | Detalle |
 |---|---|
-| `Upload` | `idempotencyKey: string \| null`; `create` la acepta opcional y la valida (no vacía, hasta 255 caracteres) |
+| `IdempotencyKey` (value object) | `create(raw)` valida: no vacía y hasta 255 caracteres. El handler la valida al principio, antes de guardar el archivo |
+| `Upload` | `idempotencyKey: string \| null`; `create` recibe un `IdempotencyKey` ya validado, opcional |
 | `IUploadRepository` | `findByIdempotencyKey(key): Promise<Upload \| null>` |
 | `PrismaUploadRepository.save` | traduce `P2002` sobre `idempotencyKey` a `DuplicateIdempotencyKeyError` (`shared/domain/errors.ts`) |
 | `CreateUploadCommand` | `idempotencyKey: string \| null` |

@@ -25,8 +25,8 @@ class HandlerDouble implements ICommandHandler<CreateUploadCommand, UploadReceip
   }
 }
 
-function request(file?: IHttpRequest["file"]): IHttpRequest {
-  return { params: {}, query: {}, body: undefined, headers: {}, file };
+function request(file?: IHttpRequest["file"], headers: unknown = {}): IHttpRequest {
+  return { params: {}, query: {}, body: undefined, headers, file };
 }
 
 describe("CreateUploadController", () => {
@@ -36,7 +36,7 @@ describe("CreateUploadController", () => {
 
     await new CreateUploadController(handler).handle(request(file));
 
-    expect(handler.received).toEqual(new CreateUploadCommand(file, "user-123"));
+    expect(handler.received).toEqual(new CreateUploadCommand(file, "user-123", null));
   });
 
   it("si la petición no trajo archivo, pasa null: decide el handler", async () => {
@@ -45,6 +45,25 @@ describe("CreateUploadController", () => {
     await new CreateUploadController(handler).handle(request());
 
     expect(handler.received?.file).toBeNull();
+  });
+
+  it("pasa la clave del header Idempotency-Key (Fastify lo entrega en minúsculas)", async () => {
+    const handler = new HandlerDouble(Either.right(RECEIPT));
+
+    await new CreateUploadController(handler).handle(request(undefined, { "idempotency-key": "abc-123" }));
+
+    expect(handler.received?.idempotencyKey).toBe("abc-123");
+  });
+
+  it.each([
+    { label: "sin header", headers: {} },
+    { label: "header repetido (llega como lista)", headers: { "idempotency-key": ["a", "b"] } },
+  ])("$label: la clave es null", async ({ headers }) => {
+    const handler = new HandlerDouble(Either.right(RECEIPT));
+
+    await new CreateUploadController(handler).handle(request(undefined, headers));
+
+    expect(handler.received?.idempotencyKey).toBeNull();
   });
 
   it("responde 202 con el comprobante", async () => {
