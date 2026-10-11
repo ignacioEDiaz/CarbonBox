@@ -4,11 +4,10 @@ import { buildContainer } from "../../src/main/container";
 import { InMemoryFileStorage } from "../support/InMemoryFileStorage";
 import { InMemoryMessageQueue } from "../support/InMemoryMessageQueue";
 import { InMemoryUploadRepository } from "../support/InMemoryUploadRepository";
+import { FilePart, multipartBody } from "../support/multipart";
 import { testConfig, TestConfigOverrides } from "../support/testConfig";
 
 const VALID_CSV = "category,amount,unit,date\nElectricity,150.5,kWh,2024-01-15\n";
-
-type FilePart = { fileName: string; content: string };
 
 // App real con S3, SQS y la base reemplazados por dobles: no hace falta Docker
 function buildApp(overrides: TestConfigOverrides = {}) {
@@ -24,22 +23,8 @@ function buildApp(overrides: TestConfigOverrides = {}) {
   return { app: new App(container, { logger: false }), storage, queue, repository };
 }
 
-// Arma un cuerpo multipart/form-data con las APIs de Node, sin librerías: Response calcula el
-// cuerpo y el content-type con su boundary
-async function multipart(...files: FilePart[]) {
-  const form = new FormData();
-  for (const file of files) {
-    form.append("file", new Blob([file.content]), file.fileName);
-  }
-  const response = new Response(form);
-  return {
-    payload: Buffer.from(await response.arrayBuffer()),
-    headers: { "content-type": response.headers.get("content-type") ?? "" },
-  };
-}
-
 async function upload(app: App, ...files: FilePart[]) {
-  return app.server.inject({ method: "POST", url: "/api/v1/uploads", ...(await multipart(...files)) });
+  return app.server.inject({ method: "POST", url: "/api/v1/uploads", ...(await multipartBody(...files)) });
 }
 
 describe("POST /api/v1/uploads", () => {

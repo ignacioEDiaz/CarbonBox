@@ -133,7 +133,7 @@ en SQS. Los rechazos no dejan nada. Si no se puede encolar, el upload queda FAIL
   - `400 VALIDATION_ERROR`: petición sin multipart, `datos.txt`, archivo vacío y encabezado incorrecto, sin nada guardado.
   - `413` con un archivo mayor que `upload.maxFileSizeMb: 1`.
   - Con dos archivos se usa el primero.
-- [ ] T027 [US1] Test de integración `backend/tests/integration/document-processing/uploadFlow.test.ts` (SC-002): App con el contenedor real, `TEST_DATABASE_URL`, `TEST_S3_BUCKET` y una cola de `createTestQueue()`. Un `POST` deja un objeto en S3 idéntico al enviado, un upload PENDING en la base de tests con ese `fileUrl` y un mensaje con su `id`.
+- [X] T027 [US1] Test de integración `backend/tests/integration/document-processing/uploadFlow.test.ts` (SC-002): App con el contenedor real, `TEST_DATABASE_URL`, `TEST_S3_BUCKET` y una cola de `createTestQueue()`. Un `POST` deja un objeto en S3 idéntico al enviado, un upload PENDING en la base de tests con ese `fileUrl` y un mensaje con su `id`.
 
 **Checkpoint**: US1 completa. Quickstart pasos 2 y 3 con `curl`.
 
