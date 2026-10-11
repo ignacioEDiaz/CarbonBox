@@ -198,14 +198,14 @@ y se leen por upload.
 ## Phase 6: Polish & Cross-Cutting Concerns
 
 - [X] T030 Revisar que no haya `any`, casts con `as`, `.skip`/`.only` ni código comentado en `backend/src` y `backend/tests` (`git grep`, como en el 001), y que `domain` no importe Prisma (`git grep -n "prisma" backend/src/document-processing/domain` vacío).
-- [ ] T031 [P] Actualizar `README.md`:
+- [X] T031 [P] Actualizar `README.md`:
   - Estado: el 002 completo.
   - "Cómo levantarlo": agregar `npm run db:deploy`.
   - Scripts: `db:migrate`, `db:deploy`, `test:unit` y `test:integration` (este último necesita Docker).
   - Una sección "Modelo de datos" con las dos tablas, el enum y la tabla de transiciones (con link a data-model.md).
   - Los nuevos desvíos del schema de la consigna (enum, `@db.Date`, índice) con su porqué.
-- [ ] T032 [P] Actualizar la sección "Cómo se ejecuta" de `CLAUDE.md`: reemplazar `npx prisma migrate dev` por `npm run db:deploy` y mencionar `npm run db:migrate` para cambios de schema y los scripts de test.
-- [ ] T033 [P] Actualizar `USO-DE-IA.md` con la etapa del spec 002:
+- [X] T032 [P] Actualizar la sección "Cómo se ejecuta" de `CLAUDE.md`: reemplazar `npx prisma migrate dev` por `npm run db:deploy` y mencionar `npm run db:migrate` para cambios de schema y los scripts de test.
+- [X] T033 [P] Actualizar `USO-DE-IA.md` con la etapa del spec 002:
   - las decisiones discutidas (reintento idempotente por `uploadId`, validación en la API frente al worker, idempotency key);
   - lo que encontró la prueba (bloqueo de `migrate reset` para agentes de IA, `generate` separado en Prisma 7, fechas en distintas zonas horarias);
   - en "¿Qué Aprendí?", espacio para que el autor complete idempotencia y DDD (aggregate root, value objects).

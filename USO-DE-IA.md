@@ -89,6 +89,39 @@ abajo.
   - Qué se gana sin `try/catch` en los controllers.
   - En qué momento se usan los archivos de `application` y de `infrastructure`.
 
+### 4. Spec 002: dominio y persistencia
+
+- **Qué hizo la IA:** redactó el spec, el plan y las tareas. Implementó con TDD los value
+  objects (`FileName`, `UploadStatus`), las entidades (`Upload`, `ActivityData`), los mappers
+  y los repositorios de Prisma, con tests de integración contra una base de tests separada.
+- **Lo que discutimos antes de decidir** (preguntas mías que cambiaron o confirmaron el
+  diseño):
+  - **¿Qué pasa si el worker se cae a mitad y el mensaje vuelve a la cola?** Elegí permitir
+    PROCESSING → PROCESSING como reintento y que guardar las filas las reemplace, para que el
+    procesamiento sea **idempotente por `uploadId`**. Descartamos marcarlo FAILED (un corte
+    transitorio fallaría un archivo válido) y permitir FAILED → PROCESSING (FAILED dejaría
+    de ser final).
+  - **¿Al worker no le deberían llegar los datos validados?** La API valida lo instantáneo
+    (que haya archivo y que sea `.csv`) y el worker valida el contenido, porque leer el
+    archivo es lento y es justo lo que se hace en segundo plano. Lo dice la propia consigna.
+  - **¿Cómo se informa un fallo?** No se le "devuelve" nada al usuario: se guarda FAILED con
+    `errorMessage` y el frontend lo ve por polling. El *visibility timeout* de la cola es la
+    red de seguridad cuando el worker muere sin poder avisar.
+  - **¿Sirve una idempotency key?** En el worker, el `uploadId` ya cumple ese rol. Un
+    `Idempotency-Key` en `POST /uploads` quedó anotado como mejora opcional para el 003.
+- **Lo que encontró la prueba previa al plan:**
+  - Prisma 7 bloquea `migrate reset` cuando lo ejecuta un agente de IA, porque borra la base,
+    y pide consentimiento explícito. La IA no lo salteó: diseñó los tests con
+    `migrate deploy` (que crea la base si falta) y con ids aleatorios por test.
+  - En Prisma 7, `migrate dev` ya no regenera el cliente: el script corre `generate` antes.
+  - La fecha `DATE` vuelve como el mismo día con el proceso en UTC-3, UTC+9 y UTC+14, siempre
+    que se convierta en UTC (`new Date("YYYY-MM-DD")` y `toISOString().slice(0, 10)`).
+- **Ajustes durante la implementación:**
+  - Jest valida la configuración de todos los proyectos, así que el `globalSetup` de
+    integración tuvo que existir desde el primer paso.
+  - La IA sacó un ternario anidado que ella misma había escrito en un test, porque iba contra
+    la regla de legibilidad de la constitución.
+
 ## ¿Qué Generé con IA?
 
 ### Backend
@@ -100,6 +133,8 @@ abajo.
   manejador central de errores
 - [x] Configuración con Convict, contenedor de Awilix y arranque
 - [x] Health check (`GET /health`) y todos los tests del spec 001
+- [x] Schema de Prisma, migración inicial, value objects, entidades, mappers y repositorios
+  (spec 002), con sus tests unitarios y de integración
 
 ### Frontend
 
@@ -124,6 +159,14 @@ abajo.
 3. **Capas e inversión de dependencias:**
    - _(completar con tus palabras: por qué el handler depende de `IDatabaseHealthChecker` y
      no de Prisma, y qué hace el contenedor de Awilix al arrancar)_
+4. **Idempotencia:**
+   - _(completar con tus palabras: qué significa que procesar dos veces dé el mismo
+     resultado, por qué hace falta con una cola que entrega "al menos una vez" y cómo lo
+     resuelven PROCESSING → PROCESSING y el reemplazo de filas)_
+5. **DDD (aggregate root y value objects):**
+   - _(completar con tus palabras: por qué todo cambio de estado pasa por `Upload`, qué
+     diferencia hay entre un value object y una entidad, y para qué sirven `create` y
+     `restore`)_
 
 ## Limitaciones Encontradas con IA
 
