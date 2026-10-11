@@ -251,3 +251,30 @@ describe("CsvParserService: el CSV según el estándar (US3)", () => {
     expect(result.rowErrors).toEqual([{ line: 6, message: "La categoría no puede estar vacía" }]);
   });
 });
+
+describe("CsvParserService: tamaño máximo de subida", () => {
+  // Arma un CSV válido de al menos 10 MB (el máximo de la subida) y devuelve cuántas filas tiene
+  function tenMegabyteCsv(): { content: Buffer; rows: number } {
+    const lines = [HEADER];
+    let size = 0;
+    while (size < 10 * 1024 * 1024) {
+      const row = `Electricidad oficina ${lines.length % 50},${(lines.length % 900) + 1}.5,kWh,2024-0${(lines.length % 9) + 1}-15`;
+      lines.push(row);
+      size += row.length + 1;
+    }
+    // join y no csv(...lines): pasar cientos de miles de argumentos desborda la pila
+    return { content: Buffer.from(`${lines.join("\n")}\n`), rows: lines.length - 1 };
+  }
+
+  it("procesa un archivo de 10 MB completo en menos de 10 segundos (SC-003)", () => {
+    const { content, rows } = tenMegabyteCsv();
+
+    const start = Date.now();
+    const result = parseOk(content);
+    const elapsedMs = Date.now() - start;
+
+    expect(result.totalRows).toBe(rows);
+    expect(result.rowErrors).toEqual([]);
+    expect(elapsedMs).toBeLessThan(10_000);
+  }, 30_000);
+});
