@@ -32,6 +32,7 @@ model Upload {
   updatedAt     DateTime       @updatedAt
 
   activityData  ActivityData[]
+  rowErrors     RowError[]
 }
 
 model ActivityData {
@@ -41,6 +42,19 @@ model ActivityData {
   amount    Float
   unit      String
   date      DateTime @db.Date // solo el día, sin hora: no se corre por zona horaria
+  createdAt DateTime @default(now())
+
+  upload Upload @relation(fields: [uploadId], references: [id])
+
+  @@index([uploadId])
+}
+
+// Errores por fila del CSV (spec 005). Se reemplazan en cada intento, como ActivityData.
+model RowError {
+  id        Int      @id @default(autoincrement())
+  uploadId  String
+  line      Int
+  message   String
   createdAt DateTime @default(now())
 
   upload Upload @relation(fields: [uploadId], references: [id])

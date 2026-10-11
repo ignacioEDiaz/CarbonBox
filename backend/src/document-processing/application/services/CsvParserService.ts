@@ -3,7 +3,8 @@ import { Either } from "../../../shared/domain/Either";
 import { ValidationError } from "../../../shared/domain/errors";
 import { ActivityData } from "../../domain/entities/ActivityData";
 import { CsvHeader, EXPECTED_CSV_COLUMNS } from "../../domain/value-objects/CsvHeader";
-import { CsvParseResult, ICsvParserService, RowError } from "./ICsvParserService";
+import { RowError } from "../../domain/value-objects/RowError";
+import { CsvParseResult, ICsvParserService } from "./ICsvParserService";
 
 // Solo dígitos, con punto decimal opcional: Number() solo aceptaría "", "1e3" o "0x10"
 const AMOUNT_FORMAT = /^\d+(\.\d+)?$/;
