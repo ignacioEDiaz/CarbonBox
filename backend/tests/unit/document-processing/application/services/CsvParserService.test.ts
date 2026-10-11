@@ -201,3 +201,53 @@ describe("CsvParserService: archivos que no se pueden procesar (US2)", () => {
     );
   });
 });
+
+describe("CsvParserService: el CSV según el estándar (US3)", () => {
+  it("lee una coma dentro de un valor entre comillas como parte del valor", () => {
+    const result = parseOk(csv(HEADER, '"Oficina, piso 2",10,kWh,2024-03-01'));
+
+    expect(values(result.validRows)).toEqual([["Oficina, piso 2", 10, "kWh", "2024-03-01"]]);
+  });
+
+  it("lee las comillas escritas dobles dentro de un valor entre comillas", () => {
+    const result = parseOk(csv(HEADER, '"Sala ""A""",10,kWh,2024-03-01'));
+
+    expect(values(result.validRows)).toEqual([['Sala "A"', 10, "kWh", "2024-03-01"]]);
+  });
+
+  it("toma como texto una comilla suelta dentro de un valor sin comillas", () => {
+    const result = parseOk(csv(HEADER, 'Sala "A,10,kWh,2024-03-01'));
+
+    expect(values(result.validRows)).toEqual([['Sala "A', 10, "kWh", "2024-03-01"]]);
+  });
+
+  it("da el mismo resultado con saltos de línea de Unix y de Windows, con las líneas reales", () => {
+    const lines = [HEADER, "Electricidad,10,kWh,2024-03-01", "", "   ", ",5,kWh,2024-03-02", "Gas,abc,m3,2024-03-03", ""];
+
+    const unix = parseOk(Buffer.from(lines.join("\n")));
+    const windows = parseOk(Buffer.from(lines.join("\r\n")));
+
+    expect(unix.rowErrors.map((error) => error.line)).toEqual([5, 6]);
+    expect(windows.rowErrors).toEqual(unix.rowErrors);
+    expect(values(windows.validRows)).toEqual(values(unix.validRows));
+    expect(windows.totalRows).toBe(unix.totalRows);
+  });
+
+  it.each([
+    { label: "Unix", eol: "\n" },
+    { label: "Windows", eol: "\r\n" },
+  ])("informa una fila de varias líneas ($label) en la línea donde empieza, sin correr las siguientes", ({ eol }) => {
+    const lines = [HEADER, "Gas,10,m3,2024-03-01", '"Oficina', "piso", '2",-1,kWh,2024-03-02', ",5,kWh,2024-03-03", ""];
+
+    const result = parseOk(Buffer.from(lines.join(eol)));
+
+    expect(result.rowErrors.map((error) => error.line)).toEqual([3, 6]);
+  });
+
+  it("ignora las líneas vacías y de solo espacios: no cuentan como filas", () => {
+    const result = parseOk(csv(HEADER, "", "Gas,10,m3,2024-03-01", "   ", "", ",5,kWh,2024-03-02", ""));
+
+    expect(result.totalRows).toBe(2);
+    expect(result.rowErrors).toEqual([{ line: 6, message: "La categoría no puede estar vacía" }]);
+  });
+});

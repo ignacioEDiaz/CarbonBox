@@ -23,7 +23,8 @@ export class CsvParserService implements ICsvParserService {
     if (headerOrError.isLeft()) {
       return Either.left(headerOrError.value);
     }
-    const rowsOrError = readRows(textOrError.value);
+    // Con \r\n dentro de un valor entre comillas, la biblioteca cuenta líneas de más
+    const rowsOrError = readRows(textOrError.value.replace(/\r\n/g, "\n"));
     if (rowsOrError.isLeft()) {
       return Either.left(rowsOrError.value);
     }
@@ -66,8 +67,9 @@ function readRows(text: string): Either<ValidationError, CsvRow[]> {
       skip_empty_lines: true,
       trim: true,
       relax_column_count: true, // otra cantidad de columnas es un error de esa fila, no del archivo
+      relax_quotes: true, // una comilla suelta en un valor sin comillas (Sala "A) es texto
       on_record: (fields: string[], context: InfoRecord) => {
-        rows.push({ fields, line: context.lines });
+        rows.push({ fields, line: startLine(fields, context) });
         lastReadLine = context.lines;
         return fields;
       },
@@ -83,6 +85,13 @@ function readRows(text: string): Either<ValidationError, CsvRow[]> {
     );
   }
   return Either.right(rows);
+}
+
+// La biblioteca informa la línea donde termina la fila. Cada salto de línea dentro de un valor
+// entre comillas es una línea más del archivo, así que restándolos se llega a donde empieza.
+function startLine(fields: string[], context: InfoRecord): number {
+  const extraLines = fields.join("").split("\n").length - 1;
+  return context.lines - extraLines;
 }
 
 function classifyRows(rows: CsvRow[], uploadId: string): CsvParseResult {
