@@ -171,14 +171,14 @@ y se leen por upload.
   - `static restore(props)` y getters de solo lectura.
 
   T022 en verde.
-- [ ] T024 [US3] Crear `DP/domain/repositories/IActivityDataRepository.ts` con `saveForUpload(uploadId: string, rows: ActivityData[]): Promise<void>` y `findByUploadId(uploadId: string): Promise<ActivityData[]>`.
-- [ ] T025 [P] [US3] Test de `PrismaActivityDataMapper` en `backend/tests/unit/document-processing/infrastructure/persistence/mappers/PrismaActivityDataMapper.test.ts`:
+- [X] T024 [US3] Crear `DP/domain/repositories/IActivityDataRepository.ts` con `saveForUpload(uploadId: string, rows: ActivityData[]): Promise<void>` y `findByUploadId(uploadId: string): Promise<ActivityData[]>`.
+- [X] T025 [P] [US3] Test de `PrismaActivityDataMapper` en `backend/tests/unit/document-processing/infrastructure/persistence/mappers/PrismaActivityDataMapper.test.ts`:
   - `toPersistence` convierte `"2024-01-15"` en `new Date("2024-01-15T00:00:00.000Z")`.
   - `toDomain` de ese `Date` devuelve `"2024-01-15"`.
   - La ida y vuelta conserva todos los campos.
 
   Verificar que falla.
-- [ ] T026 [US3] Implementar `DP/infrastructure/persistence/mappers/PrismaActivityDataMapper.ts`. Escribe la fecha con `new Date(date)` y la lee con `toISOString().slice(0, 10)` (research.md §2). T025 en verde.
+- [X] T026 [US3] Implementar `DP/infrastructure/persistence/mappers/PrismaActivityDataMapper.ts`. Escribe la fecha con `new Date(date)` y la lee con `toISOString().slice(0, 10)` (research.md §2). T025 en verde.
 - [ ] T027 [US3] Test de integración en `backend/tests/integration/document-processing/PrismaActivityDataRepository.test.ts`, escenarios 3 a 7 de US3:
   - 5 filas se guardan y se leen iguales, con la fecha como el mismo día;
   - un upload sin filas devuelve `[]`;
