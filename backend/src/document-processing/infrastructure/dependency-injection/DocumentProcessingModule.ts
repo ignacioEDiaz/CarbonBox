@@ -1,6 +1,8 @@
 import { asClass, AwilixContainer } from "awilix";
 import { CreateUploadCommandHandler } from "../../application/commands/handlers/CreateUploadCommandHandler";
+import { GetUploadByIdQueryHandler } from "../../application/queries/handlers/GetUploadByIdQueryHandler";
 import { CreateUploadController } from "../../presentation/controllers/CreateUploadController";
+import { GetUploadByIdController } from "../../presentation/controllers/GetUploadByIdController";
 import { SqsMessagePublisher } from "../messaging/SqsMessagePublisher";
 import { PrismaActivityDataRepository } from "../persistence/repositories/PrismaActivityDataRepository";
 import { PrismaUploadRepository } from "../persistence/repositories/PrismaUploadRepository";
@@ -18,5 +20,7 @@ export function registerDocumentProcessingModule(container: AwilixContainer): vo
 
     createUploadCommandHandler: asClass(CreateUploadCommandHandler).singleton(),
     createUploadController: asClass(CreateUploadController).singleton(),
+    getUploadByIdQueryHandler: asClass(GetUploadByIdQueryHandler).singleton(),
+    getUploadByIdController: asClass(GetUploadByIdController).singleton(),
   });
 }

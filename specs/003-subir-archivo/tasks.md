@@ -149,8 +149,8 @@ en SQS. Los rechazos no dejan nada. Si no se puede encolar, el upload queda FAIL
 - [X] T029 [US2] Implementar `DP/application/queries/objects/GetUploadByIdQuery.ts` y `DP/application/queries/handlers/GetUploadByIdQueryHandler.ts` (`IQueryHandler<GetUploadByIdQuery, UploadView>`, recibe `uploadRepository`; `NotFoundError("No existe un upload con id <id>")`). T028 en verde.
 - [X] T030 [P] [US2] Test de `GetUploadByIdController` en `backend/tests/unit/document-processing/presentation/controllers/GetUploadByIdController.test.ts`: toma el `id` de `params`, responde `200` con la vista, y lanza ante un `left`.
 - [X] T031 [US2] Implementar `DP/presentation/controllers/GetUploadByIdController.ts`. Como `params` es `unknown`, lee `id` con un chequeo de tipo; si no es un texto, pasa `""` (que el repositorio no encuentra → 404). T030 en verde.
-- [ ] T032 [US2] Registrar `GET /api/v1/uploads/:id` en `DocumentProcessingRoutes.ts`, y `getUploadByIdQueryHandler` y `getUploadByIdController` en `DocumentProcessingModule.ts`.
-- [ ] T033 [US2] Agregar a `backend/tests/http/uploads.test.ts` el describe `GET /api/v1/uploads/:id`: `200` con todos los campos de contracts/http-api.md y sin `fileUrl` ni `userId`; `404 NOT_FOUND` para un UUID inexistente y para `abc`.
+- [X] T032 [US2] Registrar `GET /api/v1/uploads/:id` en `DocumentProcessingRoutes.ts`, y `getUploadByIdQueryHandler` y `getUploadByIdController` en `DocumentProcessingModule.ts`.
+- [X] T033 [US2] Agregar a `backend/tests/http/uploads.test.ts` el describe `GET /api/v1/uploads/:id`: `200` con todos los campos de contracts/http-api.md y sin `fileUrl` ni `userId`; `404 NOT_FOUND` para un UUID inexistente y para `abc`.
 
 **Checkpoint**: US1 y US2 completas. Quickstart paso 4.
 

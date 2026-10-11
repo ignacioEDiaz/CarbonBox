@@ -96,3 +96,36 @@ describe("POST /api/v1/uploads", () => {
     await app.server.close();
   });
 });
+
+describe("GET /api/v1/uploads/:id", () => {
+  it("responde 200 con el estado del upload, sin la ubicación del archivo ni el usuario", async () => {
+    const { app } = buildApp();
+    const created = (await upload(app, { fileName: "datos.csv", content: VALID_CSV })).json();
+
+    const response = await app.server.inject({ method: "GET", url: `/api/v1/uploads/${created.id}` });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({
+      id: created.id,
+      status: "PENDING",
+      fileName: "datos.csv",
+      totalRows: null,
+      processedRows: null,
+      failedRows: null,
+      errorMessage: null,
+      createdAt: created.createdAt,
+      updatedAt: created.createdAt,
+    });
+    await app.server.close();
+  });
+
+  it.each(["8b0e5c0e-3a52-4c0e-9d53-0d2a0f1c7a11", "abc"])("responde 404 si %p no existe", async (id) => {
+    const { app } = buildApp();
+
+    const response = await app.server.inject({ method: "GET", url: `/api/v1/uploads/${id}` });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.json()).toEqual({ error: { type: "NOT_FOUND", message: `No existe un upload con id ${id}` } });
+    await app.server.close();
+  });
+});
