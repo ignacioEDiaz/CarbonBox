@@ -85,12 +85,32 @@ no sea final.
 - **Las transiciones de estado viven en la entidad `Upload`**
   (`PENDING -> PROCESSING -> COMPLETED | FAILED`); las inválidas se rechazan.
 
+- **Idempotencia del procesamiento por `uploadId`** (spec 002). `PROCESSING ->
+  PROCESSING` se acepta como reintento, y guardar las filas de un upload
+  reemplaza las de un intento anterior (todo o nada). Procesar dos veces el
+  mismo upload da el mismo resultado.
+
 ### Decisión pendiente
 
 - **Implementación de la cola.** El mock con array en memoria de la consigna no
   sirve: la API y el worker son procesos separados y no comparten memoria.
   Opciones: LocalStack (SQS real, permite DLQ y reintentos) o una tabla en
   PostgreSQL que haga de cola. Definir antes del spec 003.
+
+### Pendientes anotados para specs futuros
+
+- **003 (opcional):** header `Idempotency-Key` en `POST /uploads` para que un
+  doble clic o un reintento del frontend no cree dos uploads (columna con índice
+  único; si la clave ya existe, devolver el upload existente).
+- **005:** si el upload ya está en un estado final (COMPLETED o FAILED), no
+  procesar y borrar el mensaje (entrega duplicada).
+- **005:** un error de negocio (CSV ilegible, faltan columnas) marca FAILED y
+  borra el mensaje. Un error transitorio (base o storage caídos) deja el mensaje
+  para reintentar. En el último intento, marcar FAILED ("no se pudo procesar
+  después de N intentos") y mandar el mensaje a la DLQ, así nunca queda un upload
+  en PROCESSING para siempre.
+- **005:** el visibility timeout tiene que ser más largo que el procesamiento,
+  para que dos workers no tomen el mismo upload a la vez.
 
 ## Validaciones del CSV
 
