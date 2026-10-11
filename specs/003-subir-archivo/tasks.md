@@ -182,7 +182,7 @@ confirmar.
 
 **Independent Test**: quickstart.md, paso 7.
 
-- [ ] T036 [US4] En `README.md`, sección "Pasar de LocalStack a AWS": las variables que cambian (vaciar `AWS_ENDPOINT_URL`; región, `S3_BUCKET`, `SQS_QUEUE_URL` y credenciales de un usuario IAM con permisos mínimos sobre esa cola y ese bucket), cómo crear la cola y el bucket en AWS, y que no hay que tocar código. Verificar el paso 7 del quickstart (falta `S3_BUCKET` → no arranca y nombra `storage.bucket`; ya cubierto por T005).
+- [X] T036 [US4] En `README.md`, sección "Pasar de LocalStack a AWS": las variables que cambian (vaciar `AWS_ENDPOINT_URL`; región, `S3_BUCKET`, `SQS_QUEUE_URL` y credenciales de un usuario IAM con permisos mínimos sobre esa cola y ese bucket), cómo crear la cola y el bucket en AWS, y que no hay que tocar código. Verificar el paso 7 del quickstart (falta `S3_BUCKET` → no arranca y nombra `storage.bucket`; ya cubierto por T005).
 
 **Checkpoint**: US4 lista para validarse contra AWS cuando el autor conecte su cuenta.
 

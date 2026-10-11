@@ -46,6 +46,40 @@ La guía completa de verificación, incluida la base caída, la persistencia y l
 configuración, está en los quickstart de cada spec: [001](specs/001-base-del-proyecto/quickstart.md) y
 [002](specs/002-dominio-y-persistencia/quickstart.md).
 
+## S3 y SQS: LocalStack en local, AWS después
+
+Los archivos van a S3 y los avisos de procesamiento a SQS. En local, los dos corren en
+[LocalStack](https://www.localstack.cloud/) dentro de Docker. El código usa el SDK oficial de
+AWS y es el mismo en los dos casos: lo único que cambia es la configuración.
+
+### Pasar de LocalStack a AWS
+
+1. Crear el bucket y la cola en la cuenta de AWS (con la AWS CLI o desde la consola):
+
+   ```bash
+   aws s3 mb s3://<tu-bucket> --region us-east-1
+   aws sqs create-queue --queue-name uploads --region us-east-1   # devuelve la QueueUrl
+   ```
+
+2. Crear un usuario IAM solo para la aplicación, nunca usar la cuenta raíz, con permisos
+   mínimos: `s3:PutObject` y `s3:GetObject` sobre `arn:aws:s3:::<tu-bucket>/uploads/*`, y
+   `sqs:SendMessage`, `sqs:ReceiveMessage` y `sqs:DeleteMessage` sobre la cola.
+3. Cambiar `backend/.env`. Ese archivo no se versiona, así que las credenciales nunca llegan al
+   repositorio:
+
+   | Variable | LocalStack | AWS |
+   |---|---|---|
+   | `AWS_ENDPOINT_URL` | `http://localhost:4566` | vacía |
+   | `AWS_REGION` | `us-east-1` | la región del bucket y la cola |
+   | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | `test` / `test` | las del usuario IAM |
+   | `S3_BUCKET` | `carbonbox-uploads` | `<tu-bucket>` |
+   | `SQS_QUEUE_URL` | `http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/uploads` | la `QueueUrl` del paso 1 |
+
+No hay que tocar código. El tiempo de ocultamiento de los mensajes
+(`SQS_VISIBILITY_TIMEOUT_SECONDS`) se manda en cada pedido, así que tampoco hace falta
+configurarlo en la cola. Si falta una variable obligatoria, la API no arranca y el error dice
+cuál falta.
+
 ## Scripts (`backend/`)
 
 | Script | Qué hace |
