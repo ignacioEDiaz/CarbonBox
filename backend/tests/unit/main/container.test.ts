@@ -1,9 +1,10 @@
 import { PrismaActivityDataRepository } from "../../../src/document-processing/infrastructure/persistence/repositories/PrismaActivityDataRepository";
 import { PrismaUploadRepository } from "../../../src/document-processing/infrastructure/persistence/repositories/PrismaUploadRepository";
 import { buildContainer } from "../../../src/main/container";
+import { testConfig } from "../../support/testConfig";
 
-// No necesita base: Prisma se conecta recién en la primera consulta
-const container = buildContainer({ port: 0, database: { url: "postgresql://u:p@localhost:1/db" } });
+// No necesita base ni LocalStack: Prisma y el SDK de AWS se conectan recién en la primera llamada
+const container = buildContainer(testConfig());
 
 afterAll(async () => {
   await container.dispose();
