@@ -11,10 +11,13 @@ tests unitarios y con una prueba a mano desde la terminal. **No hace falta Docke
 
 ```bash
 cd backend
-npm run test:unit -- CsvParserService
+npm run test:unit -- --verbose
 ```
 
-Esperado: todos en verde y código de salida 0. Cubren, por historia:
+Esperado: todos en verde y código de salida 0 (223 tests al cerrar el spec, 48 del parser).
+Hay que correrlos con el script de npm: un `npx jest` directo no agrega el flag
+`--experimental-vm-modules` y fallan los tests HTTP (no los del parser). Los del parser cubren,
+por historia:
 
 | Historia | Qué prueban |
 |---|---|
@@ -35,24 +38,27 @@ si se quieren correr: `docker compose up -d --wait` desde la raíz y `npm run te
 
 ## 3. Prueba a mano (opcional)
 
-Desde `backend/`, con un CSV cualquiera (por ejemplo, uno con una fila rota):
+Desde `backend/` en Git Bash, con un CSV que tiene filas rotas. El script de `tsx` va en **una
+sola línea**: en Windows `npx` es un `.cmd` y `cmd.exe` corta el argumento en el primer salto
+de línea (un script de varias líneas no se ejecuta y no muestra ningún error).
 
 ```bash
-printf 'category,amount,unit,date\nElectricidad,120.5,kWh,2024-03-01\n,10,kWh,2024-03-02\nGas,12,5,m3,2024-03-03\n' > /tmp/prueba.csv
-npx tsx -e '
-import { readFileSync } from "node:fs";
-import { CsvParserService } from "./src/document-processing/application/services/CsvParserService";
-const result = new CsvParserService().parse(readFileSync("/tmp/prueba.csv"), "upload-de-prueba");
-if (result.isLeft()) console.log("Error de archivo:", result.value.message);
-else console.log({ validas: result.value.validRows.length, errores: result.value.rowErrors, total: result.value.totalRows });
-'
+printf 'category,amount,unit,date\nElectricidad,120.5,kWh,2024-03-01\n,10,kWh,2024-03-02\nGas,12,5,m3,2024-03-03\n' > prueba.csv
+npx tsx -e "import { readFileSync } from 'node:fs'; import { CsvParserService } from './src/document-processing/application/services/CsvParserService'; const r = new CsvParserService().parse(readFileSync('prueba.csv'), 'upload-de-prueba'); console.log(r.isLeft() ? r.value.message : { validas: r.value.validRows.length, errores: r.value.rowErrors, total: r.value.totalRows });"
+rm prueba.csv
 ```
 
-Esperado:
+Esperado (verificado):
 
 ```text
-{ validas: 1, errores: [ { line: 3, message: "La categoría no puede estar vacía" },
-                         { line: 4, message: "La fila tiene 5 columnas y se esperaban 4" } ], total: 3 }
+{
+  validas: 1,
+  errores: [
+    { line: 3, message: 'La categoría no puede estar vacía' },
+    { line: 4, message: 'La fila tiene 5 columnas y se esperaban 4' }
+  ],
+  total: 3
+}
 ```
 
 (La línea 4 tiene 5 columnas porque `12,5` sin comillas son dos valores: por eso el formato de
