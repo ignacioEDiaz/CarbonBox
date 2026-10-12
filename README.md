@@ -67,6 +67,13 @@ configuración, está en los quickstart de cada spec: [001](specs/001-base-del-p
 [002](specs/002-dominio-y-persistencia/quickstart.md), [003](specs/003-subir-archivo/quickstart.md)
 y [004](specs/004-parseo-y-validacion/quickstart.md).
 
+## Diagramas de la arquitectura
+
+Toda la app explicada en diagramas, con el porqué de cada decisión (flujo, capas, subida, worker,
+parser, login, modelo de datos, decisiones clave, AWS y calidad):
+[docs/arquitectura-completa.md](docs/arquitectura-completa.md). Es la versión en el repo del
+[tablero de Miro](https://miro.com/app/board/uXjVEbWe1Fg=/).
+
 ## Arquitectura en AWS
 
 Cómo se desplegaría en AWS (VPC, ALB, ECS Fargate con API y worker, RDS Multi-AZ, S3, SQS con
