@@ -56,7 +56,7 @@ export function Dashboard({ total, completed, processing, failed, chart, error }
           {chart && (
             <div className={s.legend}>
               <span><i style={{ background: "#9bd9b8" }} />{chart.latestYear}</span>
-              <span><i style={{ background: "#6f76ff" }} />{chart.previousYear}</span>
+              {chart.previousYear !== null && <span><i style={{ background: "#6f76ff" }} />{chart.previousYear}</span>}
             </div>
           )}
         </div>
@@ -69,16 +69,17 @@ export function Dashboard({ total, completed, processing, failed, chart, error }
 
 // Las dos líneas comparten la escala (el máximo de los dos años), así se pueden comparar
 function ChartLines({ chart }: { chart: ActivityChart }) {
-  const max = Math.max(...chart.latest, ...chart.previous);
+  const max = Math.max(...chart.latest, ...(chart.previous ?? []));
   const latest = toLinePath(chart.latest, max);
-  const previous = toLinePath(chart.previous, max);
+  const previous = chart.previous === null ? null : toLinePath(chart.previous, max);
+  const years = chart.previousYear === null ? `${chart.latestYear}` : `${chart.latestYear} y ${chart.previousYear}`;
   return (
     <svg
       viewBox="0 0 1000 220"
       preserveAspectRatio="none"
       className={s.chart}
       role="img"
-      aria-label={`Filas de actividad por mes en ${chart.latestYear} y ${chart.previousYear}`}
+      aria-label={`Filas de actividad por mes en ${years}`}
     >
       <defs>
         <linearGradient id="cbArea" x1="0" y1="0" x2="0" y2="1">
@@ -90,7 +91,7 @@ function ChartLines({ chart }: { chart: ActivityChart }) {
         {[20, 80, 140, 200].map((y) => <line key={y} x1="0" y1={y} x2="1000" y2={y} />)}
       </g>
       <path d={`${latest} L1000,220 L0,220 Z`} fill="url(#cbArea)" />
-      <path d={previous} fill="none" stroke="#6f76ff" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+      {previous && <path d={previous} fill="none" stroke="#6f76ff" strokeWidth="2" vectorEffect="non-scaling-stroke" />}
       <path d={latest} fill="none" stroke="#9bd9b8" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
     </svg>
   );

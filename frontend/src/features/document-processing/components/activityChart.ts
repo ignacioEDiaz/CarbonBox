@@ -1,22 +1,26 @@
 import { MonthlyRows } from "../types/upload.types";
 
-// Lo que dibuja el gráfico del dashboard: el último año con datos contra el anterior, 12 meses cada uno
+// Lo que dibuja el gráfico del dashboard: los dos años más recientes con datos, 12 meses cada uno.
+// previous es null si todos los datos son de un solo año
 export type ActivityChart = {
   latestYear: number;
-  previousYear: number;
+  previousYear: number | null;
   latest: number[];
-  previous: number[];
+  previous: number[] | null;
 };
 
 // null si todavía no hay filas procesadas
 export function toActivityChart(data: MonthlyRows[]): ActivityChart | null {
   if (data.length === 0) return null;
-  const latestYear = Math.max(...data.map((row) => row.year));
+  // Los años que tienen filas, del más nuevo al más viejo. No se usa latestYear - 1: si hay datos
+  // de 2026 y 2024, el año anterior (2025) estaría vacío y los de 2024 no se verían
+  const years = [...new Set(data.map((row) => row.year))].sort((a, b) => b - a);
+  const [latestYear, previousYear = null] = years;
   return {
     latestYear,
-    previousYear: latestYear - 1,
+    previousYear,
     latest: monthlyValues(data, latestYear),
-    previous: monthlyValues(data, latestYear - 1),
+    previous: previousYear === null ? null : monthlyValues(data, previousYear),
   };
 }
 
