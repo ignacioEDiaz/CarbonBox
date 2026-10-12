@@ -4,7 +4,7 @@ import { Upload } from "../../../../../src/document-processing/domain/entities/U
 import { FileName } from "../../../../../src/document-processing/domain/value-objects/FileName";
 import { IdempotencyKey } from "../../../../../src/document-processing/domain/value-objects/IdempotencyKey";
 import { UploadStatus } from "../../../../../src/document-processing/domain/value-objects/UploadStatus";
-import { DuplicateIdempotencyKeyError, ValidationError } from "../../../../../src/shared/domain/errors";
+import { ConflictError, DuplicateIdempotencyKeyError, ValidationError } from "../../../../../src/shared/domain/errors";
 import { IMessagePublisher } from "../../../../../src/shared/infrastructure/messaging/IMessagePublisher";
 import { CallLog } from "../../../../support/CallLog";
 import { FailingMessagePublisher } from "../../../../support/FailingMessagePublisher";
@@ -167,6 +167,18 @@ describe("CreateUploadCommandHandler: clave de idempotencia", () => {
 
     expect(retry.isRight() && first.isRight() && retry.value).toEqual(first.isRight() && first.value);
     expect([storage.files.size, queue.messages.length, repository.all.length]).toEqual([1, 1, 1]);
+  });
+
+  it("una clave que ya usó otro usuario responde ConflictError y no le muestra ese upload", async () => {
+    const { handler, repository } = setup();
+    await handler.execute(withKey("abc-123"));
+
+    const result = await handler.execute(
+      new CreateUploadCommand({ fileName: "datos.csv", content: Buffer.from(VALID_CSV) }, "otro-usuario", "abc-123"),
+    );
+
+    expect(result.isLeft() && result.value).toBeInstanceOf(ConflictError);
+    expect(repository.all).toHaveLength(1);
   });
 
   it("dos subidas con claves distintas crean dos uploads", async () => {

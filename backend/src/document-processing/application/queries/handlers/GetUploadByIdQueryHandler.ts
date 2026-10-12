@@ -25,7 +25,8 @@ export class GetUploadByIdQueryHandler implements IQueryHandler<GetUploadByIdQue
 
   async execute(query: GetUploadByIdQuery): Promise<Either<Error, UploadView>> {
     const upload = await this.uploadRepository.findById(query.id);
-    if (upload === null) {
+    // Un upload ajeno responde igual que uno inexistente: no se confirma que exista
+    if (upload === null || upload.userId !== query.userId) {
       return Either.left(new NotFoundError(`No existe un upload con id ${query.id}`));
     }
     return Either.right(toUploadView(upload));

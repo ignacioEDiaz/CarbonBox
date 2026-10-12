@@ -1,23 +1,20 @@
 import { AwilixContainer } from "awilix";
 import { FastifyInstance } from "fastify";
-import { adaptRoute } from "../../../shared/infrastructure/http/adaptRoute";
-import { CreateUploadController } from "../controllers/CreateUploadController";
-import { GetUploadByIdController } from "../controllers/GetUploadByIdController";
-import { GetUploadResultsController } from "../controllers/GetUploadResultsController";
-import { ListUploadsController } from "../controllers/ListUploadsController";
-import { GetUploadRowErrorsController } from "../controllers/GetUploadRowErrorsController";
+import { ITokenService } from "../../../shared/application/security/ITokenService";
+import { adaptAuthenticatedRoute } from "../../../shared/infrastructure/http/adaptRoute";
+import { BaseController } from "../../../shared/infrastructure/http/BaseController";
 
-// Las rutas del bounded context, cada una conectada a su controller a través de adaptRoute
+// Todas las rutas de uploads piden sesión: cada una recibe el usuario del token
 export function registerDocumentProcessingRoutes(server: FastifyInstance, container: AwilixContainer): void {
-  server.post("/api/v1/uploads", adaptRoute(container.resolve<CreateUploadController>("createUploadController")));
-  server.get("/api/v1/uploads", adaptRoute(container.resolve<ListUploadsController>("listUploadsController")));
-  server.get("/api/v1/uploads/:id", adaptRoute(container.resolve<GetUploadByIdController>("getUploadByIdController")));
-  server.get(
-    "/api/v1/uploads/:id/results",
-    adaptRoute(container.resolve<GetUploadResultsController>("getUploadResultsController")),
-  );
-  server.get(
-    "/api/v1/uploads/:id/errors",
-    adaptRoute(container.resolve<GetUploadRowErrorsController>("getUploadRowErrorsController")),
-  );
+  const tokenService = container.resolve<ITokenService>("tokenService");
+  const authenticated = (name: string) => adaptAuthenticatedRoute(container.resolve<BaseController>(name), tokenService);
+
+  server.post("/api/v1/uploads", authenticated("createUploadController"));
+  server.get("/api/v1/uploads", authenticated("listUploadsController"));
+  // Ruta fija: Fastify la prefiere a /:id, así "summary" no se toma como un id
+  server.get("/api/v1/uploads/summary", authenticated("getUploadsSummaryController"));
+  server.get("/api/v1/uploads/:id", authenticated("getUploadByIdController"));
+  server.get("/api/v1/uploads/:id/results", authenticated("getUploadResultsController"));
+  server.get("/api/v1/uploads/:id/errors", authenticated("getUploadRowErrorsController"));
 }
+

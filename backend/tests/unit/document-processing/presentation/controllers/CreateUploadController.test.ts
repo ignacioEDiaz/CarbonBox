@@ -26,11 +26,11 @@ class HandlerDouble implements ICommandHandler<CreateUploadCommand, UploadReceip
 }
 
 function request(file?: IHttpRequest["file"], headers: unknown = {}): IHttpRequest {
-  return { params: {}, query: {}, body: undefined, headers, file };
+  return { params: {}, query: {}, body: undefined, headers, file, userId: "user-123" };
 }
 
 describe("CreateUploadController", () => {
-  it("arma el command con el archivo de la petición y el usuario user-123", async () => {
+  it("arma el command con el archivo de la petición y el usuario del token", async () => {
     const handler = new HandlerDouble(Either.right(RECEIPT));
     const file = { fileName: "datos.csv", content: Buffer.from("category,amount,unit,date\n") };
 

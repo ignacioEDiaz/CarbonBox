@@ -1,6 +1,7 @@
 import { asValue } from "awilix";
 import { App } from "../../src/main/App";
 import { buildContainer } from "../../src/main/container";
+import { authHeader } from "../support/authHeader";
 import { InMemoryFileStorage } from "../support/InMemoryFileStorage";
 import { InMemoryMessageQueue } from "../support/InMemoryMessageQueue";
 import { InMemoryUploadRepository } from "../support/InMemoryUploadRepository";
@@ -24,7 +25,8 @@ function buildApp(overrides: TestConfigOverrides = {}) {
 }
 
 async function upload(app: App, ...files: FilePart[]) {
-  return app.server.inject({ method: "POST", url: "/api/v1/uploads", ...(await multipartBody(...files)) });
+  const body = await multipartBody(...files);
+  return app.server.inject({ method: "POST", url: "/api/v1/uploads", payload: body.payload, headers: { ...body.headers, ...authHeader() } });
 }
 
 describe("POST /api/v1/uploads", () => {
@@ -45,7 +47,7 @@ describe("POST /api/v1/uploads", () => {
   it("una petición que no es multipart responde 400 porque falta el archivo", async () => {
     const { app, repository } = buildApp();
 
-    const response = await app.server.inject({ method: "POST", url: "/api/v1/uploads", payload: {} });
+    const response = await app.server.inject({ method: "POST", url: "/api/v1/uploads", payload: {}, headers: authHeader() });
 
     expect(response.statusCode).toBe(400);
     expect(response.json()).toEqual({
@@ -102,7 +104,7 @@ describe("GET /api/v1/uploads/:id", () => {
     const { app } = buildApp();
     const created = (await upload(app, { fileName: "datos.csv", content: VALID_CSV })).json();
 
-    const response = await app.server.inject({ method: "GET", url: `/api/v1/uploads/${created.id}` });
+    const response = await app.server.inject({ method: "GET", url: `/api/v1/uploads/${created.id}`, headers: authHeader() });
 
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({
@@ -122,7 +124,7 @@ describe("GET /api/v1/uploads/:id", () => {
   it.each(["8b0e5c0e-3a52-4c0e-9d53-0d2a0f1c7a11", "abc"])("responde 404 si %p no existe", async (id) => {
     const { app } = buildApp();
 
-    const response = await app.server.inject({ method: "GET", url: `/api/v1/uploads/${id}` });
+    const response = await app.server.inject({ method: "GET", url: `/api/v1/uploads/${id}`, headers: authHeader() });
 
     expect(response.statusCode).toBe(404);
     expect(response.json()).toEqual({ error: { type: "NOT_FOUND", message: `No existe un upload con id ${id}` } });
@@ -139,7 +141,7 @@ describe("POST /api/v1/uploads con Idempotency-Key", () => {
         method: "POST",
         url: "/api/v1/uploads",
         payload: body.payload,
-        headers: { ...body.headers, "idempotency-key": "abc-123" },
+        headers: { ...body.headers, ...authHeader(), "idempotency-key": "abc-123" },
       });
     };
 

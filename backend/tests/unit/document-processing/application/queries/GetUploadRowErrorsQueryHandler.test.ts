@@ -21,7 +21,7 @@ describe("GetUploadRowErrorsQueryHandler", () => {
       { line: 3, message: "La categoría no puede estar vacía" },
     ]);
 
-    const result = await handler.execute(new GetUploadRowErrorsQuery(upload.id));
+    const result = await handler.execute(new GetUploadRowErrorsQuery(upload.id, "user-123"));
 
     expect(result.isRight() && result.value).toEqual({
       data: [
@@ -34,7 +34,7 @@ describe("GetUploadRowErrorsQueryHandler", () => {
   it("devuelve una lista vacía si el upload no tiene errores (o todavía no se procesó)", async () => {
     const { handler, upload } = await setup();
 
-    const result = await handler.execute(new GetUploadRowErrorsQuery(upload.id));
+    const result = await handler.execute(new GetUploadRowErrorsQuery(upload.id, "user-123"));
 
     expect(result.isRight() && result.value).toEqual({ data: [] });
   });
@@ -42,7 +42,7 @@ describe("GetUploadRowErrorsQueryHandler", () => {
   it("devuelve NotFoundError si el upload no existe", async () => {
     const { handler } = await setup();
 
-    const result = await handler.execute(new GetUploadRowErrorsQuery("no-existe"));
+    const result = await handler.execute(new GetUploadRowErrorsQuery("no-existe", "user-123"));
 
     expect(result.isLeft() && result.value).toBeInstanceOf(NotFoundError);
   });
