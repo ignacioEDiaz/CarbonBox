@@ -1,0 +1,31 @@
+.page{position:relative;min-height:100vh;overflow:hidden;color:#fff;background:#04061f url(/bg-carbonbox.png) center top/cover no-repeat}
+
+.main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:48px 32px 96px;display:flex;flex-direction:column;gap:24px}
+.title{font-size:44px;line-height:1.05;font-weight:700;letter-spacing:-.035em;margin:0}
+
+.panel{padding:24px;border-radius:24px;background:rgba(8,10,40,.78);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 30px 80px rgba(2,3,30,.5)}
+.tableWrap{overflow-x:auto;border:1px solid rgba(255,255,255,.08);border-radius:16px}
+.table{width:100%;min-width:760px;border-collapse:collapse;font-size:13.5px}
+.table th{text-align:left;padding:14px 18px;font-size:12px;font-weight:500;color:rgba(255,255,255,.55)}
+.table td{padding:16px 18px;border-top:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.8)}
+.table tbody tr:hover{background:rgba(255,255,255,.03)}
+.file{font-weight:500;color:#fff !important}
+.right{text-align:right !important}
+.status{display:inline-flex;font-size:11px;font-weight:600;letter-spacing:.04em;padding:4px 10px;border-radius:999px;text-transform:uppercase}
+.statusCompleted{color:#0b2a1a;background:#9bd9b8}
+.statusProcessing{color:#fff;background:rgba(143,149,255,.25);border:1px solid rgba(143,149,255,.5)}
+.statusFailed{color:#fff;background:rgba(255,138,138,.2);border:1px solid rgba(255,138,138,.5)}
+/* Agregado al diseño: la consigna pide PENDING en amarillo (el diseño lo pintaba como PROCESSING) */
+.statusPending{color:#fff;background:rgba(255,214,102,.2);border:1px solid rgba(255,214,102,.55)}
+.detail{font-size:13px;font-weight:500;color:#9bd9b8;text-decoration:none}
+.detail:hover{color:#fff}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-top:1px solid rgba(255,255,255,.07);font-size:13px;color:rgba(255,255,255,.7)}
+.pageBtn{font-family:inherit;font-size:13px;color:#fff;background:transparent;border:1px solid rgba(255,255,255,.15);padding:7px 14px;border-radius:10px;cursor:pointer}
+.pageBtn:hover:not(:disabled){background:rgba(255,255,255,.06)}
+.pageBtn:disabled{opacity:.4;cursor:not-allowed}
+/* Agregados al diseño: carga, error y lista vacía */
+.message{padding:28px 18px;text-align:center;color:rgba(255,255,255,.65)}
+.message a{color:#9bd9b8}
+.error{color:#ffb8b8}
+
+@media (max-width:720px){.main{padding-left:20px;padding-right:20px}.title{font-size:34px}.panel{padding:16px}}
