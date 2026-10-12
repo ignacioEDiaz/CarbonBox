@@ -8,7 +8,11 @@ import { S3FileStorage } from "../../../src/document-processing/infrastructure/s
 import { CreateUploadController } from "../../../src/document-processing/presentation/controllers/CreateUploadController";
 import { PrismaActivityDataRepository } from "../../../src/document-processing/infrastructure/persistence/repositories/PrismaActivityDataRepository";
 import { PrismaUploadRepository } from "../../../src/document-processing/infrastructure/persistence/repositories/PrismaUploadRepository";
+import { ProcessFileCommandHandler } from "../../../src/document-processing/application/commands/handlers/ProcessFileCommandHandler";
+import { FileProcessingService } from "../../../src/document-processing/application/services/FileProcessingService";
+import { PrismaRowErrorRepository } from "../../../src/document-processing/infrastructure/persistence/repositories/PrismaRowErrorRepository";
 import { buildContainer } from "../../../src/main/container";
+import { FileProcessingWorker } from "../../../src/workers/FileProcessingWorker";
 import { testConfig } from "../../support/testConfig";
 
 // No necesita base ni LocalStack: Prisma y el SDK de AWS se conectan recién en la primera llamada
@@ -40,6 +44,13 @@ describe("contenedor de dependencias", () => {
 
   it("resuelve csvParserService con el parser de csv-parse", () => {
     expect(container.resolve("csvParserService")).toBeInstanceOf(CsvParserService);
+  });
+
+  it("resuelve las piezas del procesamiento (spec 005)", () => {
+    expect(container.resolve("rowErrorRepository")).toBeInstanceOf(PrismaRowErrorRepository);
+    expect(container.resolve("fileProcessingService")).toBeInstanceOf(FileProcessingService);
+    expect(container.resolve("processFileCommandHandler")).toBeInstanceOf(ProcessFileCommandHandler);
+    expect(container.resolve("fileProcessingWorker")).toBeInstanceOf(FileProcessingWorker);
   });
 
   it("resuelve los clientes del SDK de AWS", () => {

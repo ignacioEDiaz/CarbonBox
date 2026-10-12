@@ -16,7 +16,8 @@ cada parte tiene su spec, su plan y sus tareas en [`specs/`](specs/), y todas re
 | [002-dominio-y-persistencia](specs/002-dominio-y-persistencia/) | Entidades `Upload` y `ActivityData`, estados, schema, migración y repositorios | ✅ Completo |
 | [003-subir-archivo](specs/003-subir-archivo/) | Subida de CSV a S3, upload en PENDING, aviso en SQS (LocalStack), consulta por id | ✅ Completo |
 | [004-parseo-y-validacion](specs/004-parseo-y-validacion/) | `CsvParserService`: filas válidas, errores por fila con línea y motivo, errores de archivo | ✅ Completo (lo conecta el 005) |
-| 005 a 007 | Worker, consultas, frontend | Pendiente |
+| [005-worker-y-procesamiento](specs/005-worker-y-procesamiento/) | Worker (`npm run worker`): procesa el CSV, guarda filas y errores por fila, COMPLETED o FAILED, reintentos y DLQ | ✅ Completo |
+| 006 y 007 | Consultas, frontend | Pendiente |
 
 ## Requisitos
 
@@ -35,6 +36,7 @@ cp .env.example .env               # en PowerShell: Copy-Item .env.example .env
 npm install                        # también genera el cliente de Prisma
 npm run db:deploy                  # crea las tablas (aplica las migraciones)
 npm run dev                        # API en http://localhost:3000
+npm run worker                     # en otra terminal: procesa los archivos subidos
 ```
 
 Comprobar que todo responde:
@@ -95,6 +97,7 @@ cuál falta.
 | Script | Qué hace |
 |---|---|
 | `npm run dev` | Corre la API con recarga automática (`tsx watch`) |
+| `npm run worker` | Corre el worker: consume SQS (cada 3 s si la cola está vacía) y procesa cada upload |
 | `npm test` | Corre todos los tests (unitarios, HTTP y de integración) |
 | `npm run test:unit` | Solo unitarios y HTTP: no necesita Docker |
 | `npm run test:integration` | Repositorios, S3, SQS y la subida completa contra la base de tests `document_processing_test` y LocalStack (necesita Docker). La base se crea y se migra sola |
@@ -110,6 +113,7 @@ cuál falta.
 | GET | `/health` | `200 {"service":"up","database":"up"}`; `503` si la base no responde |
 | POST | `/api/v1/uploads` | `202 { id, status, fileName, createdAt }`. Multipart con el archivo en `file`; header opcional `Idempotency-Key` |
 | GET | `/api/v1/uploads/:id` | `200 { id, status, fileName, totalRows, processedRows, failedRows, errorMessage, createdAt, updatedAt }`; `404` si no existe |
+| GET | `/api/v1/uploads/:id/errors` | `200 { data: [{ line, message }] }`, los errores por fila ordenados por línea; `404` si no existe |
 
 La subida solo valida lo instantáneo: que haya archivo, que no esté vacío, que pese hasta
 10 MB, que termine en `.csv` y que la primera línea sea `category,amount,unit,date`. Las filas
@@ -145,6 +149,26 @@ PENDING ──► PROCESSING ──► COMPLETED
 COMPLETED y FAILED son finales. Guardar las filas de un upload **reemplaza** las de un intento
 anterior en una sola transacción, así que procesar dos veces el mismo upload da el mismo
 resultado (idempotencia por `uploadId`).
+
+## Procesamiento (worker)
+
+`npm run worker` es un proceso aparte de la API, con el mismo contenedor de dependencias. Hace
+polling a SQS (si la cola está vacía, espera 3 s) y por cada mensaje `{ uploadId }`:
+
+1. `FileProcessingWorker` traduce el mensaje a `ProcessFileCommand` (sin lógica de negocio).
+2. `ProcessFileCommandHandler` busca el upload; si no existe o ya terminó (entrega duplicada),
+   no procesa. Si no, lo marca PROCESSING.
+3. `FileProcessingService` baja el CSV de S3, lo parsea con `CsvParserService` y guarda las
+   filas válidas (`ActivityData`) y los errores por fila (`RowError`), reemplazando los de un
+   intento anterior.
+4. El handler marca **COMPLETED** con los conteos, o **FAILED** si el parser rechazó el archivo o
+   si ninguna fila es válida.
+5. El worker borra el mensaje recién al final.
+
+Si S3 o Postgres fallan, el mensaje no se borra y SQS lo reentrega a los 60 s. En el tercer
+intento el upload queda FAILED ("No se pudo procesar después de 3 intentos"); si ni eso se
+puede, la redrive policy mueve el mensaje a la DLQ `uploads-dlq`. Diseño paso a paso:
+[spec 005](specs/005-worker-y-procesamiento/) y el frame 7 del tablero de Miro.
 
 ## Formato del CSV y validaciones
 
@@ -210,6 +234,8 @@ Se respeta el árbol de carpetas de la consigna. Estos son los agregados y por q
 | `CsvHeader` e `IdempotencyKey` en `domain/value-objects/` | Reglas del negocio: el encabezado lo comparten la subida y el parser (spec 004) |
 | `shared/infrastructure/aws/createAwsClients.ts` | Un solo lugar arma los clientes de S3 y SQS (LocalStack o AWS según el endpoint) |
 | `localstack/ready.d/` y `.gitattributes` | Crean la cola y los buckets al arrancar; el `.sh` necesita fin de línea LF aunque se clone en Windows |
+| `src/workers/index.ts` | Arranque del worker: el bucle de polling necesita `try/catch` y la constitución no lo permite en el worker |
+| Tabla `RowError` y `GET /api/v1/uploads/:id/errors` | Los errores por fila se guardan y se consultan (decisión del autor) |
 | `application/services/ICsvParserService.ts` | El handler de procesamiento (spec 005) depende de esta interfaz y no de `CsvParserService` |
 
 Las decisiones técnicas, con sus alternativas descartadas, están en

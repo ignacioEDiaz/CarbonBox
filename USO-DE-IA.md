@@ -228,6 +228,22 @@ abajo.
     directo hace fallar los tests HTTP porque no agrega `--experimental-vm-modules` (hay que
     usar `npm run test:unit`).
 
+### 8. Spec 005: worker y procesamiento
+
+- **Decisiones mías:** si ninguna fila es válida, el upload termina FAILED (COMPLETED con 0
+  filas engañaría); los errores por fila se guardan en una tabla `RowError` con su propio
+  handler y endpoint (`GET /api/v1/uploads/:id/errors`); el worker tenía que respetar el de la
+  consigna (script aparte con polling). Antes de implementar le pedí a la IA el diseño paso a
+  paso en Miro (frame 7) para entenderlo y poder explicarlo.
+- **Qué hizo la IA:** spec, plan y tareas, y la implementación con TDD: `FileProcessingWorker`,
+  `ProcessFileCommandHandler`, `FileProcessingService`, la tabla y el repositorio de `RowError`,
+  la query de errores, `npm run worker` y la DLQ. 281 tests en verde, y una prueba a mano con
+  la API y el worker corriendo: un CSV de 3 filas llegó a COMPLETED en ~1 s.
+- **Qué se corrigió en el camino:** `RowError` vivía en la capa de aplicación (el parser) y el
+  repositorio, que está en el dominio, no podía importarlo: se movió al dominio. El bucle del
+  worker necesita `try/catch` y la constitución no lo permite en el worker: el bucle quedó en
+  `workers/index.ts` (arranque), y el worker solo procesa un mensaje y deja salir los errores.
+
 ## ¿Qué Generé con IA?
 
 ### Backend
@@ -245,6 +261,7 @@ abajo.
   subida y consulta de uploads, encabezado del CSV y clave de idempotencia (spec 003), con sus
   tests unitarios, HTTP y de integración contra LocalStack
 - [x] Parser del CSV (`CsvParserService` con `csv-parse`, spec 004) y sus tests unitarios
+- [x] Worker, procesamiento, errores por fila y DLQ (spec 005), con tests unitarios y de integración
 - [x] Diagramas del backend en Miro (para estudiar el código)
 
 ### Frontend
