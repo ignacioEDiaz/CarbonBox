@@ -46,7 +46,9 @@ después se ven los resultados.
 5. Inyección de dependencias por constructor, registrada con Awilix. Los
    handlers dependen de interfaces, nunca de clases concretas.
 6. TypeScript sin `any`.
-7. Sin autenticación: se asume `userId = "user-123"`.
+7. Login con JWT (spec 007, pedido del autor): todas las rutas de uploads exigen
+   `Authorization: Bearer <token>` y cada usuario ve solo lo suyo (lo ajeno responde 404).
+   Reemplaza el `userId = "user-123"` de los specs 001 a 006.
 
 ## Flujo y orden de los pasos
 
@@ -197,7 +199,7 @@ npm run dev                 # API, terminal 1
 npm run worker              # worker, terminal 2
 cd ../frontend
 npm install
-npm run dev                 # frontend, terminal 3
+npm run dev                 # frontend en http://localhost:3001, terminal 3
 ```
 
 - Variables: copiar al `backend/.env` las de `backend/.env.example` (AWS, S3,
