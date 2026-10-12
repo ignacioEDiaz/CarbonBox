@@ -3,6 +3,7 @@ import { CreateUploadCommandHandler } from "../../application/commands/handlers/
 import { ProcessFileCommandHandler } from "../../application/commands/handlers/ProcessFileCommandHandler";
 import { GetUploadByIdQueryHandler } from "../../application/queries/handlers/GetUploadByIdQueryHandler";
 import { GetUploadResultsQueryHandler } from "../../application/queries/handlers/GetUploadResultsQueryHandler";
+import { GetActivityByMonthQueryHandler } from "../../application/queries/handlers/GetActivityByMonthQueryHandler";
 import { GetUploadsSummaryQueryHandler } from "../../application/queries/handlers/GetUploadsSummaryQueryHandler";
 import { GetUploadRowErrorsQueryHandler } from "../../application/queries/handlers/GetUploadRowErrorsQueryHandler";
 import { ListUploadsQueryHandler } from "../../application/queries/handlers/ListUploadsQueryHandler";
@@ -12,6 +13,7 @@ import { FileProcessingWorker } from "../../../workers/FileProcessingWorker";
 import { CreateUploadController } from "../../presentation/controllers/CreateUploadController";
 import { GetUploadByIdController } from "../../presentation/controllers/GetUploadByIdController";
 import { GetUploadResultsController } from "../../presentation/controllers/GetUploadResultsController";
+import { GetActivityByMonthController } from "../../presentation/controllers/GetActivityByMonthController";
 import { GetUploadsSummaryController } from "../../presentation/controllers/GetUploadsSummaryController";
 import { GetUploadRowErrorsController } from "../../presentation/controllers/GetUploadRowErrorsController";
 import { ListUploadsController } from "../../presentation/controllers/ListUploadsController";
@@ -50,5 +52,7 @@ export function registerDocumentProcessingModule(container: AwilixContainer): vo
     getUploadResultsController: asClass(GetUploadResultsController).singleton(),
     getUploadsSummaryQueryHandler: asClass(GetUploadsSummaryQueryHandler).singleton(),
     getUploadsSummaryController: asClass(GetUploadsSummaryController).singleton(),
+    getActivityByMonthQueryHandler: asClass(GetActivityByMonthQueryHandler).singleton(),
+    getActivityByMonthController: asClass(GetActivityByMonthController).singleton(),
   });
 }

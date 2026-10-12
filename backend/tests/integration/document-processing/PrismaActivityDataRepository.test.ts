@@ -120,4 +120,27 @@ describe("PrismaActivityDataRepository", () => {
       ["2024-03-02", "Gas"],
     ]);
   });
+
+  it("cuenta las filas por año y mes, solo de los uploads del usuario", async () => {
+    const userId = `user-${randomUUID()}`;
+    const fileName = FileName.create("datos.csv");
+    if (fileName.isLeft()) throw fileName.value;
+    const mine = Upload.create({ fileName: fileName.value, fileUrl: "uploads/m.csv", userId });
+    const others = Upload.create({ fileName: fileName.value, fileUrl: "uploads/o.csv", userId: `otro-${randomUUID()}` });
+    if (mine.isLeft() || others.isLeft()) throw new Error("upload inválido");
+    await uploadRepository.save(mine.value);
+    await uploadRepository.save(others.value);
+    const row = (uploadId: string, date: string) => {
+      const result = ActivityData.create({ uploadId, category: "Gas", amount: 1, unit: "m3", date });
+      if (result.isLeft()) throw result.value;
+      return result.value;
+    };
+    await repository.saveForUpload(mine.value.id, [row(mine.value.id, "2024-03-01"), row(mine.value.id, "2024-03-20"), row(mine.value.id, "2025-01-05")]);
+    await repository.saveForUpload(others.value.id, [row(others.value.id, "2024-03-02")]);
+
+    expect(await repository.countByMonthForUser(userId)).toEqual([
+      { year: 2024, month: 3, rows: 2 },
+      { year: 2025, month: 1, rows: 1 },
+    ]);
+  });
 });

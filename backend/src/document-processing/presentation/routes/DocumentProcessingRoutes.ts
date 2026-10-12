@@ -11,8 +11,9 @@ export function registerDocumentProcessingRoutes(server: FastifyInstance, contai
 
   server.post("/api/v1/uploads", authenticated("createUploadController"));
   server.get("/api/v1/uploads", authenticated("listUploadsController"));
-  // Ruta fija: Fastify la prefiere a /:id, así "summary" no se toma como un id
+  // Rutas fijas: Fastify las prefiere a /:id, así "summary" no se toma como un id
   server.get("/api/v1/uploads/summary", authenticated("getUploadsSummaryController"));
+  server.get("/api/v1/uploads/activity-by-month", authenticated("getActivityByMonthController"));
   server.get("/api/v1/uploads/:id", authenticated("getUploadByIdController"));
   server.get("/api/v1/uploads/:id/results", authenticated("getUploadResultsController"));
   server.get("/api/v1/uploads/:id/errors", authenticated("getUploadRowErrorsController"));

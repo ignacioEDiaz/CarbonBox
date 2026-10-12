@@ -116,6 +116,18 @@ describe("sesión y separación entre usuarios", () => {
   });
 });
 
+describe("GET /api/v1/uploads/activity-by-month", () => {
+  it("devuelve las filas por mes del usuario del token", async () => {
+    const { app, activityDataRepository } = await buildApp(0);
+    activityDataRepository.monthlyRows.set("user-123", [{ year: 2024, month: 3, rows: 2 }]);
+
+    const response = await app.server.inject({ method: "GET", url: "/api/v1/uploads/activity-by-month", headers: authHeader() });
+
+    expect([response.statusCode, response.json()]).toEqual([200, { data: [{ year: 2024, month: 3, rows: 2 }] }]);
+    await app.server.close();
+  });
+});
+
 describe("GET /api/v1/uploads/summary", () => {
   it("cuenta los uploads del usuario por estado", async () => {
     const { app } = await buildApp(2);
