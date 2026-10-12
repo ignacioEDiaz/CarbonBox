@@ -3,7 +3,7 @@ import s from "./UploadDetail.module.css";
 
 export function ResultsTable({ rows }: { rows: ActivityRow[] }) {
   return (
-    <section className={s.panel}>
+    <section className={`${s.panel} ${s.panelLight}`}>
       <h2 className={s.panelTitle}>Datos procesados</h2>
       <div className={s.tableWrap}>
         <table className={s.table}>
@@ -29,7 +29,7 @@ export function ResultsTable({ rows }: { rows: ActivityRow[] }) {
 // Los errores por fila: la línea del archivo y qué corregir
 export function RowErrorsTable({ errors }: { errors: RowError[] }) {
   return (
-    <section className={`${s.panel} ${s.panelError}`}>
+    <section className={`${s.panel} ${s.panelLight}`}>
       <h2 className={s.panelTitle}>Filas con errores <span className={s.count}>{errors.length}</span></h2>
       <div className={s.tableWrap}>
         <table className={s.table}>

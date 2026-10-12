@@ -30,6 +30,16 @@
 .lineCol{width:80px}
 .line{display:inline-flex;min-width:28px;justify-content:center;font-size:12px;font-weight:600;color:#ffb0b0;background:rgba(255,138,138,.12);padding:3px 8px;border-radius:8px}
 
+/* Paneles de datos y errores en blanco: textos y bordes oscuros para que se lean */
+.panelLight{background:#fff;border-color:#e6e8f2;color:#14163a}
+.panelLight .tableWrap{border-color:#e6e8f2}
+.panelLight .table th{color:#6b6f8a}
+.panelLight .table td{color:#2a2d4a;border-top-color:#eef0f6}
+.panelLight .table tbody tr:hover{background:#f6f7fb}
+.panelLight .strong{color:#14163a !important}
+.panelLight .line{color:#b42323;background:#ffecec}
+.panelLight .count{color:#b42323;background:#ffecec;border-color:#ffc9c9}
+
 /* Agregados al diseño: lo que pide la consigna para PROCESSING y FAILED, y los estados de carga */
 .progress{height:6px;border-radius:999px;background:rgba(143,149,255,.15);overflow:hidden}
 .progressBar{width:35%;height:100%;border-radius:999px;background:#8f95ff;animation:slide 1.4s ease-in-out infinite}
