@@ -28,6 +28,16 @@ function integerFormat(name: string, min: number, max: number, rule: string): co
 convict.addFormat(integerFormat("visibility-seconds", 0, 43200, "debe ser un entero entre 0 y 43200"));
 convict.addFormat(integerFormat("positive-int", 1, Number.MAX_SAFE_INTEGER, "debe ser un entero mayor que 0"));
 
+// HS256 con un secreto corto se puede adivinar por fuerza bruta: se exigen al menos 32 caracteres
+convict.addFormat({
+  name: "jwt-secret",
+  validate: (value: unknown) => {
+    if (typeof value !== "string" || value.length < 32) {
+      throw new Error("es obligatorio y debe tener al menos 32 caracteres");
+    }
+  },
+});
+
 const schema: convict.Schema<IConvictProps> = {
   port: {
     doc: "Puerto HTTP del servicio",
@@ -87,6 +97,21 @@ const schema: convict.Schema<IConvictProps> = {
       format: "positive-int",
       default: 10,
       env: "UPLOAD_MAX_FILE_SIZE_MB",
+    },
+  },
+  jwt: {
+    secret: {
+      doc: "Secreto para firmar los tokens de sesión",
+      format: "jwt-secret",
+      default: "",
+      env: "JWT_SECRET",
+      sensitive: true,
+    },
+    expiresIn: {
+      doc: "Vencimiento del token de sesión",
+      format: "required-string",
+      default: "1h",
+      env: "JWT_EXPIRES_IN",
     },
   },
 };

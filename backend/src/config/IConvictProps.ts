@@ -17,4 +17,8 @@ export interface IConvictProps {
   upload: {
     maxFileSizeMb: number;
   };
+  jwt: {
+    secret: string;
+    expiresIn: string; // formato de jsonwebtoken: "1h", "15m", "7d"
+  };
 }
