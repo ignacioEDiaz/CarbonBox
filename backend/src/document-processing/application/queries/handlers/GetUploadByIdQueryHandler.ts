@@ -28,11 +28,12 @@ export class GetUploadByIdQueryHandler implements IQueryHandler<GetUploadByIdQue
     if (upload === null) {
       return Either.left(new NotFoundError(`No existe un upload con id ${query.id}`));
     }
-    return Either.right(toView(upload));
+    return Either.right(toUploadView(upload));
   }
 }
 
-function toView(upload: Upload): UploadView {
+// La comparte la lista (ListUploadsQueryHandler): el detalle y la lista no pueden divergir
+export function toUploadView(upload: Upload): UploadView {
   return {
     id: upload.id,
     status: upload.status.value,
