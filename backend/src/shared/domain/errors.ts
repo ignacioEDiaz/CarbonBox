@@ -22,3 +22,19 @@ export class NotFoundError extends Error {
     this.name = "NotFoundError";
   }
 }
+
+// Falta la sesión, el token es inválido o venció, o las credenciales son incorrectas
+export class UnauthorizedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UnauthorizedError";
+  }
+}
+
+// El pedido choca con algo que ya existe (un email registrado, una clave ya usada)
+export class ConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ConflictError";
+  }
+}
