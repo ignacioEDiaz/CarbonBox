@@ -185,7 +185,7 @@ Cada spec describe qué y por qué, sin tecnología; el stack va en el plan.
 | `006-consultas` | Lista paginada y `GET /uploads/:id/results`, con queries y handlers | Los cuatro endpoints responden con el formato de la consigna |
 | `007-frontend` | Formulario de subida, lista con badges, detalle con polling, dashboard | Todo el flujo se ve desde el navegador |
 
-Fuera de Spec Kit, al final: diagrama AWS (`docs/arquitectura-aws.png`),
+Fuera de Spec Kit, al final: diagrama AWS ([`docs/arquitectura-aws.md`](docs/arquitectura-aws.md), en Mermaid),
 `README.md`, `USO-DE-IA.md` y `sample-data.csv` (50 filas o más).
 
 ## Cómo se ejecuta

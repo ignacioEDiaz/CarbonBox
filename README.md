@@ -67,6 +67,12 @@ configuración, está en los quickstart de cada spec: [001](specs/001-base-del-p
 [002](specs/002-dominio-y-persistencia/quickstart.md), [003](specs/003-subir-archivo/quickstart.md)
 y [004](specs/004-parseo-y-validacion/quickstart.md).
 
+## Arquitectura en AWS
+
+Cómo se desplegaría en AWS (VPC, ALB, ECS Fargate con API y worker, RDS Multi-AZ, S3, SQS con
+DLQ, CloudWatch y Secrets Manager), con el diagrama y el porqué de cada pieza:
+[docs/arquitectura-aws.md](docs/arquitectura-aws.md).
+
 ## S3 y SQS: LocalStack en local, AWS después
 
 Los archivos van a S3 y los avisos de procesamiento a SQS. En local, los dos corren en
