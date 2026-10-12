@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { DragEvent, FormEvent, useState } from "react";
 import { errorMessage } from "@/shared/lib/api-client";
-import { clearToken } from "@/shared/lib/session";
 import { useCreateUpload } from "../api/uploadsApi";
 import { UploadCsv } from "./UploadCsv";
 
@@ -40,11 +39,6 @@ export function UploadForm() {
     upload.mutate(file, { onSuccess: (receipt) => router.push(`/uploads/${receipt.id}`) });
   }
 
-  function logout() {
-    clearToken();
-    router.replace("/login");
-  }
-
   return (
     <UploadCsv
       fileName={file?.name}
@@ -61,7 +55,6 @@ export function UploadForm() {
       onDragLeave={() => setDragging(false)}
       onDrop={drop}
       onSubmit={submit}
-      onLogout={logout}
     />
   );
 }

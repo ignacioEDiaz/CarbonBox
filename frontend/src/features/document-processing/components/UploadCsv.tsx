@@ -2,9 +2,8 @@
 
 // Solo diseño: no sabe de la API ni de la sesión. La lógica llega por props desde UploadForm.
 // Imágenes: public/logo-carbonbox-blanco.png y public/bg-carbonbox.png
-import Image from "next/image";
-import Link from "next/link";
 import { ChangeEvent, DragEvent, FormEvent } from "react";
+import { AppHeader } from "@/shared/components/AppHeader";
 import s from "./UploadCsv.module.css";
 
 type UploadCsvProps = {
@@ -19,7 +18,6 @@ type UploadCsvProps = {
   onDragLeave: () => void;
   onDrop: (event: DragEvent<HTMLLabelElement>) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  onLogout: () => void;
 };
 
 export function UploadCsv({
@@ -34,29 +32,11 @@ export function UploadCsv({
   onDragLeave,
   onDrop,
   onSubmit,
-  onLogout,
 }: UploadCsvProps) {
   const dropClass = [s.drop, isDragging && s.dropOver, fileName && s.dropReady].filter(Boolean).join(" ");
   return (
     <div className={s.page}>
-      <header className={s.header}>
-        <div className={s.headerInner}>
-          <Image
-            src="/logo-carbonbox-blanco.png"
-            alt="CarbonBox"
-            width={150}
-            height={30}
-            priority
-            style={{ height: 30, width: "auto" }}
-          />
-          <nav className={s.nav}>
-            <Link href="/" className={s.navLink}>Dashboard</Link>
-            <Link href="/uploads" className={s.navLink}>Uploads</Link>
-            <Link href="/uploads/new" className={`${s.navLink} ${s.navActive}`}>Subir CSV</Link>
-          </nav>
-          <button type="button" className={s.logout} onClick={onLogout}>Cerrar sesión</button>
-        </div>
-      </header>
+      <AppHeader active="upload" />
 
       <main className={s.main}>
         <div className={s.head}>

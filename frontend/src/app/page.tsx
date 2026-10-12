@@ -1,43 +1,40 @@
 "use client";
 
-import Link from "next/link";
 import { useUploadsSummary } from "@/features/document-processing/api/uploadsApi";
-import { Layout } from "@/shared/components/Layout";
-import { LoadingSpinner } from "@/shared/components/LoadingSpinner";
+import { Dashboard } from "@/features/document-processing/components/Dashboard";
+import { RequireAuth } from "@/shared/components/RequireAuth";
 import { errorMessage } from "@/shared/lib/api-client";
 
-// Dashboard: el resumen de los uploads del usuario
+// Dashboard: pide el resumen y se lo pasa al diseño
 export default function DashboardPage() {
   return (
-    <Layout>
-      <h1 className="mb-6 text-2xl font-semibold">Dashboard</h1>
-      <Summary />
-      <Link href="/uploads/new" className="mt-6 inline-block rounded bg-gray-900 px-4 py-2 text-white">
-        Subir un CSV
-      </Link>
-    </Layout>
+    <RequireAuth>
+      <DashboardWithData />
+    </RequireAuth>
   );
 }
 
-function Summary() {
+function DashboardWithData() {
   const { data, isPending, error } = useUploadsSummary();
-  if (isPending) return <LoadingSpinner />;
-  if (error) return <p className="text-red-600">{errorMessage(error)}</p>;
-
-  const cards = [
-    { label: "Total de uploads", value: data.total },
-    { label: "Completados", value: data.completed },
-    { label: "En proceso", value: data.pending + data.processing },
-    { label: "Fallidos", value: data.failed },
-  ];
+  if (isPending || error) {
+    const placeholder = isPending ? "…" : "—";
+    return (
+      <Dashboard
+        total={placeholder}
+        completed={placeholder}
+        processing={placeholder}
+        failed={placeholder}
+        error={error ? errorMessage(error) : undefined}
+      />
+    );
+  }
+  // "En proceso" suma los que esperan en la cola (PENDING) y los que se están procesando
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-      {cards.map((card) => (
-        <div key={card.label} className="rounded border bg-white p-4">
-          <p className="text-sm text-gray-500">{card.label}</p>
-          <p className="text-3xl font-semibold">{card.value}</p>
-        </div>
-      ))}
-    </div>
+    <Dashboard
+      total={data.total}
+      completed={data.completed}
+      processing={data.pending + data.processing}
+      failed={data.failed}
+    />
   );
 }

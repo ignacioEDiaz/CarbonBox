@@ -1,14 +1,5 @@
 .page{position:relative;min-height:100vh;overflow:hidden;color:#fff;background:#04061f url(/bg-carbonbox.png) center top/cover no-repeat}
 
-.header{position:relative;z-index:3;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(6,8,40,.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.headerInner{display:flex;align-items:center;justify-content:space-between;gap:24px;max-width:1180px;margin:0 auto;padding:16px 32px}
-.nav{display:flex;gap:6px;font-size:14px;font-weight:500}
-.navLink{color:rgba(255,255,255,.8);text-decoration:none;padding:8px 16px;border-radius:999px;transition:all .15s}
-.navLink:hover{color:#fff;background:rgba(255,255,255,.06)}
-.navActive{color:#9bd9b8;background:rgba(155,217,184,.1)}
-.logout{background:#fff;color:#1a1fa8;text-decoration:none;font-weight:600;font-size:14px;padding:10px 22px;border-radius:999px;border:0;cursor:pointer;font-family:inherit}
-.logout:hover{background:#e6e9ff}
-
 .main{position:relative;z-index:2;max-width:720px;margin:0 auto;padding:72px 24px 120px}
 .head{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:44px}
 .badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#9bd9b8;border:1px solid rgba(155,217,184,.3);background:rgba(10,14,70,.5);padding:7px 16px;border-radius:999px}
@@ -39,4 +30,4 @@
 .progress{height:6px;margin-top:20px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
 .progressBar{height:100%;border-radius:999px;background:#9bd9b8;transition:width .2s}
 
-@media (max-width:720px){.nav{display:none}.title{font-size:38px}.main{padding-top:48px}.row{flex-direction:column;align-items:stretch}.btn{width:100%}}
+@media (max-width:720px){.title{font-size:38px}.main{padding-top:48px}.row{flex-direction:column;align-items:stretch}.btn{width:100%}}
