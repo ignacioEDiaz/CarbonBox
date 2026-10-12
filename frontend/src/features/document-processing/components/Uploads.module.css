@@ -27,3 +27,22 @@
 .error{color:#ffb8b8}
 
 @media (max-width:720px){.main{padding-left:20px;padding-right:20px}.title{font-size:34px}.panel{padding:16px}}
+
+/* Agregado al diseño: en el celular cada upload es una tarjeta en vez de una fila de tabla.
+   Los títulos de columna salen del atributo data-label de cada celda */
+@media (max-width:720px){
+  .table{min-width:0}
+  .table thead{display:none}
+  .table,.table tbody,.table tr,.table td{display:block;width:100%}
+  .table tbody tr{padding:14px 16px;border-top:1px solid rgba(255,255,255,.07)}
+  .table tbody tr:first-child{border-top:0}
+  .table td{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:5px 0;border-top:0;text-align:right}
+  .table td::before{content:attr(data-label);font-size:12px;color:rgba(255,255,255,.5);text-align:left}
+  .table td.file{font-size:15px;text-align:left;padding-bottom:8px;word-break:break-word}
+  .table td.file::before{display:none}
+  .actions{justify-content:flex-start !important;padding-top:10px !important}
+  .actions .detail{flex:1;text-align:center;padding:9px;border:1px solid rgba(155,217,184,.4);border-radius:10px}
+  .pager{flex-wrap:wrap;justify-content:center;text-align:center}
+  .pager span{order:-1;width:100%}
+  .pager .pageBtn{flex:1}
+}

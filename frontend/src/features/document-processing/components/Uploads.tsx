@@ -44,12 +44,13 @@ export function Uploads({ uploads, page, totalPages, totalCount, isLoading, erro
             <tbody>
               {uploads.map((upload) => (
                 <tr key={upload.id}>
-                  <td className={s.file}>{upload.fileName}</td>
-                  <td><span className={`${s.status} ${STATUS[upload.status]}`}>{upload.status}</span></td>
-                  <td>{new Date(upload.createdAt).toLocaleString("es-AR")}</td>
+                  <td className={s.file} data-label="Archivo">{upload.fileName}</td>
+                  <td data-label="Estado"><span className={`${s.status} ${STATUS[upload.status]}`}>{upload.status}</span></td>
+                  <td data-label="Subido">{new Date(upload.createdAt).toLocaleString("es-AR")}</td>
+                  {/* data-label: el título de la columna, que en el celular se muestra al lado del dato */}
                   {/* Hasta que termina el procesamiento los conteos son null */}
-                  <td>{upload.processedRows === null ? "—" : `${upload.processedRows} de ${upload.totalRows}`}</td>
-                  <td className={s.right}><Link href={`/uploads/${upload.id}`} className={s.detail}>Ver detalle</Link></td>
+                  <td data-label="Filas procesadas">{upload.processedRows === null ? "—" : `${upload.processedRows} de ${upload.totalRows}`}</td>
+                  <td className={`${s.right} ${s.actions}`}><Link href={`/uploads/${upload.id}`} className={s.detail}>Ver detalle</Link></td>
                 </tr>
               ))}
             </tbody>
