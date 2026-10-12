@@ -38,3 +38,11 @@ export class ConflictError extends Error {
     this.name = "ConflictError";
   }
 }
+
+// Un registro con un email que ya tiene cuenta. El handler lo traduce a ConflictError (409).
+export class DuplicateEmailError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DuplicateEmailError";
+  }
+}
