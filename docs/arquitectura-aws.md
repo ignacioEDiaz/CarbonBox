@@ -6,65 +6,54 @@ ya usan el SDK oficial de AWS, y para pasar de LocalStack a AWS solo cambia la c
 
 ## Diagrama
 
+El mismo diagrama como imagen: [arquitectura-aws.png](arquitectura-aws.png).
+
 ```mermaid
-flowchart TB
-    user(["Usuario (navegador)"])
+flowchart LR
+    user(["Usuario<br/>(navegador)"])
 
     subgraph aws["AWS - región us-east-1"]
-        subgraph vpc["VPC 10.0.0.0/16"]
-            subgraph pub["Subnets públicas (AZ a y AZ b)"]
+        direction LR
+        subgraph vpc["VPC - 2 zonas de disponibilidad (AZ a y AZ b)"]
+            direction TB
+            subgraph pub["Subnets públicas"]
                 alb["Application Load Balancer<br/>HTTPS 443"]
-                nat["NAT Gateway"]
             end
-
-            subgraph priv["Subnets privadas (AZ a y AZ b)"]
-                subgraph ecs["ECS Fargate (cluster carbonbox)"]
-                    api["API Service<br/>2+ tasks, una por AZ<br/>Fastify"]
-                    worker["Worker Service<br/>1 a N tasks<br/>npm run worker"]
-                end
-                subgraph rds["RDS PostgreSQL Multi-AZ"]
-                    db[("Primaria (AZ a)")]
-                    standby[("Standby (AZ b)<br/>réplica síncrona")]
-                end
+            subgraph priv["Subnets privadas"]
+                api["ECS Fargate: API Service<br/>2+ tasks, una por AZ"]
+                worker["ECS Fargate: Worker Service<br/>1 a N tasks (auto scaling)"]
+                db[("RDS PostgreSQL Multi-AZ<br/>primaria AZ a + standby AZ b")]
             end
         end
 
-        s3[("S3 carbonbox-uploads<br/>privado, cifrado<br/>lifecycle: IA a 30 días, borrar a 90")]
-        sqs[["SQS uploads<br/>visibility timeout 60 s"]]
-        dlq[["SQS uploads-dlq<br/>después de 3 entregas"]]
-        secrets["Secrets Manager<br/>DATABASE_URL, JWT_SECRET"]
-        cw["CloudWatch<br/>logs, métricas y alarmas"]
-        scaling["Application Auto Scaling<br/>según mensajes en la cola"]
-        ecr["ECR<br/>imágenes de API y worker"]
+        subgraph managed["Servicios administrados (fuera de la VPC)"]
+            direction TB
+            s3[("S3 carbonbox-uploads<br/>privado y cifrado<br/>lifecycle: IA 30 días, borrar a 90")]
+            sqs[["SQS uploads<br/>visibility timeout 60 s"]]
+            dlq[["SQS uploads-dlq"]]
+            secrets["Secrets Manager<br/>DATABASE_URL, JWT_SECRET"]
+            cw["CloudWatch<br/>logs, métricas y alarmas"]
+        end
     end
 
     user -->|"HTTPS"| alb
-    alb -->|"HTTP a las tasks sanas<br/>health check /health"| api
+    alb -->|"health check /health"| api
 
-    api -->|"1. PutObject del CSV"| s3
-    api -->|"2. INSERT upload PENDING"| db
-    api -->|"3. SendMessage { uploadId }"| sqs
+    api -->|"1. guarda el CSV"| s3
+    api -->|"2. upload PENDING"| db
+    api -->|"3. publica { uploadId }"| sqs
 
-    worker -->|"4. ReceiveMessage"| sqs
-    worker -->|"5. GetObject"| s3
+    sqs -->|"4. recibe el mensaje"| worker
+    worker -->|"5. baja el CSV"| s3
     worker -->|"6. filas, errores y estado"| db
-    worker -->|"7. DeleteMessage"| sqs
-    sqs -.->|"redrive: más de 3 entregas"| dlq
+    sqs -.->|"más de 3 entregas"| dlq
 
-    db -.->|"replicación síncrona"| standby
-
-    secrets -.->|"inyecta secretos al arrancar"| api
-    secrets -.->|"inyecta secretos al arrancar"| worker
-
+    secrets -.->|"secretos al arrancar"| api
+    secrets -.->|"secretos al arrancar"| worker
     api -.->|"logs"| cw
     worker -.->|"logs"| cw
-    sqs -.->|"ApproximateNumberOfMessagesVisible"| cw
-    dlq -.->|"alarma si hay mensajes"| cw
-    cw -.->|"métrica de la cola"| scaling
-    scaling -.->|"sube o baja tasks"| worker
-
-    ecr -.->|"imágenes, vía NAT"| ecs
-    nat -.->|"salida a internet"| ecs
+    sqs -.->|"mensajes en cola"| cw
+    cw -.->|"auto scaling: más o menos tasks"| worker
 ```
 
 ## Qué hace cada pieza y por qué
@@ -76,13 +65,13 @@ flowchart TB
 | **Application Load Balancer** | Recibe HTTPS y reparte entre las tasks de la API | Hace el health check contra `GET /health`, que ya existe (spec 001): si una task no responde o la base está caída, deja de mandarle tráfico |
 | **ECS Fargate: API Service** | Corre la API (Fastify) en contenedores, sin administrar servidores | 2 o más tasks, una por zona, para alta disponibilidad. Es rápida: solo valida, guarda y encola (spec 003) |
 | **ECS Fargate: Worker Service** | Corre `npm run worker` (spec 005) | Escala aparte de la API: si se suben muchos archivos, crecen los workers y la API ni se entera. Por eso son procesos separados desde el principio |
-| **Auto scaling del worker** | Sube o baja la cantidad de tasks del worker | Según `ApproximateNumberOfMessagesVisible` de la cola (por ejemplo, 1 task cada 10 mensajes, entre 1 y 10). Es la métrica correcta: mide trabajo pendiente, no uso de CPU |
+| **Auto scaling del worker** (flecha de CloudWatch al worker) | Sube o baja la cantidad de tasks del worker | Según `ApproximateNumberOfMessagesVisible` de la cola (por ejemplo, 1 task cada 10 mensajes, entre 1 y 10). Es la métrica correcta: mide trabajo pendiente, no uso de CPU |
 | **RDS PostgreSQL Multi-AZ** | La base, con una réplica síncrona en la otra zona | Si la primaria falla, RDS pasa a la standby solo, en uno o dos minutos y con la misma dirección. La app no cambia: es el mismo Prisma |
 | **S3 privado** | Guarda los CSV originales (`uploads/<uuid>.csv`) | Privado y cifrado: solo las tasks pueden leer o escribir. La **lifecycle policy** pasa los archivos a almacenamiento más barato (Infrequent Access) a los 30 días y los borra a los 90: el archivo original se conserva un tiempo para reintentar o auditar, y después no ocupa lugar para siempre |
 | **SQS + DLQ** | La cola entre la API y el worker | El visibility timeout (60 s) es mayor que lo que tarda procesar un archivo (~1 s para 10 MB). Si un mensaje falla 3 veces, la **redrive policy** lo mueve a `uploads-dlq` (spec 005, ya implementado en LocalStack) |
 | **Secrets Manager** | Guarda `DATABASE_URL` (con la contraseña de la base) y `JWT_SECRET` | ECS los inyecta como variables de entorno al arrancar cada task: nunca están en el código, en la imagen ni en el repositorio. RDS puede rotar la contraseña sola |
 | **CloudWatch** | Logs de las tasks, métricas y alarmas | Los logs de Fastify y del worker llegan por el driver `awslogs`. Alarmas útiles: mensajes en la DLQ (algo falla siempre), cola creciendo sin bajar, 5xx en el ALB |
-| **NAT Gateway + ECR** | Salida a internet de las subnets privadas y el registro de imágenes | Las tasks bajan su imagen de ECR y hablan con las APIs de AWS sin tener IP pública. Para ahorrar NAT se pueden agregar VPC endpoints de S3, SQS, ECR y Secrets Manager |
+| **NAT Gateway + ECR** (no están en el diagrama para que se lea mejor) | Salida a internet de las subnets privadas y el registro de imágenes | El NAT va en las subnets públicas. Las tasks bajan su imagen de ECR y hablan con las APIs de AWS sin tener IP pública. Para ahorrar NAT se pueden agregar VPC endpoints de S3, SQS, ECR y Secrets Manager |
 
 ## Permisos (IAM, mínimo privilegio)
 
