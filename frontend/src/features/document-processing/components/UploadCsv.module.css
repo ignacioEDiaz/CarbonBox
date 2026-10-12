@@ -1,0 +1,42 @@
+.page{position:relative;min-height:100vh;overflow:hidden;color:#fff;background:#04061f url(/bg-carbonbox.png) center top/cover no-repeat}
+
+.header{position:relative;z-index:3;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(6,8,40,.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.headerInner{display:flex;align-items:center;justify-content:space-between;gap:24px;max-width:1180px;margin:0 auto;padding:16px 32px}
+.nav{display:flex;gap:6px;font-size:14px;font-weight:500}
+.navLink{color:rgba(255,255,255,.8);text-decoration:none;padding:8px 16px;border-radius:999px;transition:all .15s}
+.navLink:hover{color:#fff;background:rgba(255,255,255,.06)}
+.navActive{color:#9bd9b8;background:rgba(155,217,184,.1)}
+.logout{background:#fff;color:#1a1fa8;text-decoration:none;font-weight:600;font-size:14px;padding:10px 22px;border-radius:999px;border:0;cursor:pointer;font-family:inherit}
+.logout:hover{background:#e6e9ff}
+
+.main{position:relative;z-index:2;max-width:720px;margin:0 auto;padding:72px 24px 120px}
+.head{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:44px}
+.badge{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#9bd9b8;border:1px solid rgba(155,217,184,.3);background:rgba(10,14,70,.5);padding:7px 16px;border-radius:999px}
+.dot{width:6px;height:6px;border-radius:50%;background:#9bd9b8}
+.title{font-size:52px;line-height:1.05;font-weight:700;letter-spacing:-.035em;margin:22px 0 14px}
+.title span{color:#9bd9b8}
+.sub{margin:0;max-width:540px;font-size:16px;line-height:1.65;color:rgba(255,255,255,.72);text-wrap:pretty}
+.sub code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13.5px;color:#cfe9db;background:rgba(155,217,184,.1);padding:2px 7px;border-radius:6px}
+
+.wrap{position:relative}
+.logoBg{position:absolute;z-index:0;left:50%;top:50%;width:118%;max-width:none;height:auto;transform:translate(-50%,-50%);opacity:.55;filter:drop-shadow(0 0 24px rgba(155,170,255,.9));pointer-events:none}
+
+.card{position:relative;z-index:1;padding:28px;border-radius:28px;background:linear-gradient(140deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,.04) 55%,rgba(255,255,255,.08) 100%);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);box-shadow:0 40px 100px rgba(2,3,30,.6),inset 0 1px 0 rgba(255,255,255,.28),inset 0 -1px 0 rgba(255,255,255,.05)}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:220px;padding:28px;text-align:center;cursor:pointer;border-radius:20px;border:1.5px dashed rgba(255,255,255,.3);background:rgba(6,8,40,.25);transition:border-color .2s,background .2s}
+.drop input{display:none}
+.dropOver{border-color:#9bd9b8;background:rgba(155,217,184,.12)}
+.dropReady{border-color:#9bd9b8}
+.fileIcon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;background:rgba(155,217,184,.12);border:1px solid rgba(155,217,184,.35);color:#9bd9b8;font-size:15px;font-weight:700}
+.label{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.hint{font-size:13px;color:rgba(255,255,255,.6)}
+.row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;margin-top:24px}
+.btn{font-family:inherit;font-size:15px;font-weight:600;color:#fff;background:#2f6b44;border:1px solid rgba(155,217,184,.25);padding:14px 34px;border-radius:999px;cursor:pointer;box-shadow:0 10px 30px rgba(47,107,68,.45);transition:background .2s,opacity .2s}
+.btn:hover:not(:disabled){background:#38804f}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.error{margin:14px 0 0;font-size:13px;color:#ffb8b8}
+
+/* Agregado al diseño: la barra de avance de la subida (la consigna pide un indicador de progreso) */
+.progress{height:6px;margin-top:20px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+.progressBar{height:100%;border-radius:999px;background:#9bd9b8;transition:width .2s}
+
+@media (max-width:720px){.nav{display:none}.title{font-size:38px}.main{padding-top:48px}.row{flex-direction:column;align-items:stretch}.btn{width:100%}}

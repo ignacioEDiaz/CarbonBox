@@ -1,11 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { DragEvent, useState } from "react";
+import { DragEvent, FormEvent, useState } from "react";
 import { errorMessage } from "@/shared/lib/api-client";
+import { clearToken } from "@/shared/lib/session";
 import { useCreateUpload } from "../api/uploadsApi";
+import { UploadCsv } from "./UploadCsv";
 
-// Selector o arrastrar y soltar. Solo .csv; al terminar la subida lleva al detalle.
+// La lógica de la subida: elegir o soltar el archivo, validar que sea .csv, subirlo con su avance
+// y llevar al detalle. El diseño lo pone UploadCsv.
 export function UploadForm() {
   const router = useRouter();
   const upload = useCreateUpload();
@@ -24,48 +27,41 @@ export function UploadForm() {
     setFile(candidate);
   }
 
-  function drop(event: DragEvent) {
+  function drop(event: DragEvent<HTMLLabelElement>) {
     event.preventDefault();
     setDragging(false);
     choose(event.dataTransfer.files[0]);
   }
 
-  function send() {
+  // El botón queda deshabilitado mientras sube: evita el doble clic
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     if (file === null) return;
     upload.mutate(file, { onSuccess: (receipt) => router.push(`/uploads/${receipt.id}`) });
   }
 
+  function logout() {
+    clearToken();
+    router.replace("/login");
+  }
+
   return (
-    <div className="space-y-4">
-      <label
-        onDragOver={(event) => {
-          event.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={drop}
-        className={`flex cursor-pointer flex-col items-center rounded border-2 border-dashed p-10 text-center ${
-          dragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
-        }`}
-      >
-        <span className="text-gray-700">{file ? file.name : "Arrastrá un CSV acá o hacé clic para elegirlo"}</span>
-        <input type="file" accept=".csv" className="hidden" onChange={(event) => choose(event.target.files?.[0])} />
-      </label>
-      {validation && <p className="text-sm text-red-600">{validation}</p>}
-      {upload.isError && <p className="text-sm text-red-600">{errorMessage(upload.error)}</p>}
-      {upload.isPending && (
-        <div className="h-2 w-full rounded bg-gray-200">
-          <div className="h-2 rounded bg-gray-900" style={{ width: `${upload.progress}%` }} />
-        </div>
-      )}
-      {/* Deshabilitado mientras sube: evita el doble clic (el backend además respeta Idempotency-Key) */}
-      <button
-        onClick={send}
-        disabled={file === null || upload.isPending}
-        className="rounded bg-gray-900 px-4 py-2 text-white disabled:opacity-50"
-      >
-        {upload.isPending ? `Subiendo... ${upload.progress}%` : "Subir"}
-      </button>
-    </div>
+    <UploadCsv
+      fileName={file?.name}
+      fileSize={file?.size}
+      isDragging={dragging}
+      isUploading={upload.isPending}
+      progress={upload.progress}
+      error={validation ?? (upload.isError ? errorMessage(upload.error) : undefined)}
+      onFileChange={(event) => choose(event.target.files?.[0])}
+      onDragOver={(event) => {
+        event.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={drop}
+      onSubmit={submit}
+      onLogout={logout}
+    />
   );
 }
