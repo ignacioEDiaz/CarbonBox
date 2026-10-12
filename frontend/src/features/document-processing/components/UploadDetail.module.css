@@ -39,6 +39,10 @@
 .panelLight .strong{color:#14163a !important}
 .panelLight .line{color:#b42323;background:#ffecec}
 .panelLight .count{color:#b42323;background:#ffecec;border-color:#ffc9c9}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px;border-top:1px solid #eef0f6;font-size:13px;color:#6b6f8a}
+.pageBtn{font-family:inherit;font-size:13px;color:#14163a;background:#fff;border:1px solid #d9dcea;padding:7px 14px;border-radius:10px;cursor:pointer}
+.pageBtn:hover:not(:disabled){background:#f6f7fb}
+.pageBtn:disabled{opacity:.4;cursor:not-allowed}
 
 /* Agregados al diseño: lo que pide la consigna para PROCESSING y FAILED, y los estados de carga */
 .progress{height:6px;border-radius:999px;background:rgba(143,149,255,.15);overflow:hidden}
