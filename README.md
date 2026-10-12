@@ -18,13 +18,13 @@ cada parte tiene su spec, su plan y sus tareas en [`specs/`](specs/), y todas re
 | [004-parseo-y-validacion](specs/004-parseo-y-validacion/) | `CsvParserService`: filas válidas, errores por fila con línea y motivo, errores de archivo | ✅ Completo (lo conecta el 005) |
 | [005-worker-y-procesamiento](specs/005-worker-y-procesamiento/) | Worker (`npm run worker`): procesa el CSV, guarda filas y errores por fila, COMPLETED o FAILED, reintentos y DLQ | ✅ Completo |
 | [006-consultas](specs/006-consultas/) | Lista paginada de uploads y resultados de un upload | ✅ Completo |
-| [007-frontend-y-login](specs/007-frontend-y-login/) | Login con JWT, rutas protegidas por usuario y frontend en Next.js | ✅ Completo (el diseño visual llega después) |
+| [007-frontend-y-login](specs/007-frontend-y-login/) | Login con JWT, rutas protegidas por usuario y frontend en Next.js | ✅ Completo |
 
 ## Requisitos
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) corriendo.
 - Node.js 24 o superior.
-- Los puertos 5432 (Postgres), 4566 (LocalStack) y 3000 (API) libres.
+- Los puertos 5432 (Postgres), 4566 (LocalStack), 3000 (API) y 3001 (frontend) libres.
 
 ## Cómo levantarlo
 
@@ -52,14 +52,41 @@ Next reenvía `/api/*` a la API (`API_URL`, por defecto `http://localhost:3000`)
 falta CORS. En `backend/.env` tiene que estar `JWT_SECRET` (mínimo 32 caracteres, ver
 `.env.example`).
 
-Comprobar que todo responde:
+## Cómo probarlo
+
+Con todo levantado, abrir **http://localhost:3001**:
+
+1. **Crear una cuenta** en "Creala acá" (la contraseña necesita al menos 8 caracteres). Entra
+   directo al dashboard.
+2. **Subir un CSV** desde "Subir CSV". Hay archivos de ejemplo en la raíz del repo:
+
+   | Archivo | Qué muestra |
+   |---|---|
+   | [`sample-data.csv`](sample-data.csv) | 60 filas válidas: termina `COMPLETED` |
+   | [`sample-data-con-errores.csv`](sample-data-con-errores.csv) | Filas válidas e inválidas: `COMPLETED`, con la línea y el motivo de cada error |
+   | [`columnas_incorrectas.csv`](columnas_incorrectas.csv) | Encabezado en castellano: la API lo rechaza al instante (400), no se crea el upload |
+   | [`sindatos.csv`](sindatos.csv) | Solo el encabezado: se sube, y el worker lo marca `FAILED` porque no tiene filas |
+
+3. **Qué observar:** la subida responde enseguida y el upload aparece `PENDING`. El detalle
+   pregunta cada 3 segundos: pasa a `PROCESSING` y después a `COMPLETED` o `FAILED`, y ahí deja
+   de preguntar. Con el worker apagado, el upload se queda en `PENDING` hasta que se lo prende:
+   el mensaje espera en la cola. En el detalle se ven las filas procesadas (de a 10 por página)
+   y la tabla de errores; en "Uploads", la lista con un color por estado; y en el dashboard, los
+   totales y las filas por mes.
+
+Desde la terminal (bash), sin el frontend:
 
 ```bash
 curl http://localhost:3000/health
 # {"service":"up","database":"up"}
 
-curl -F "file=@datos.csv" http://localhost:3000/api/v1/uploads
-# 202 {"id":"...","status":"PENDING","fileName":"datos.csv","createdAt":"..."}
+curl -H "Content-Type: application/json" -d '{"email":"demo@carbonbox.dev","password":"demo12345"}'   http://localhost:3000/api/v1/auth/register
+TOKEN=$(curl -s -H "Content-Type: application/json" -d '{"email":"demo@carbonbox.dev","password":"demo12345"}'   http://localhost:3000/api/v1/auth/login | sed -E 's/.*"token":"([^"]+)".*//')
+
+curl -H "Authorization: Bearer $TOKEN" -F "file=@sample-data.csv" http://localhost:3000/api/v1/uploads
+# 202 {"id":"...","status":"PENDING","fileName":"sample-data.csv","createdAt":"..."}
+
+curl -H "Authorization: Bearer $TOKEN" http://localhost:3000/api/v1/uploads/<id>
 ```
 
 La guía completa de verificación, incluida la base caída, la persistencia y los errores de

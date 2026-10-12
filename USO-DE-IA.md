@@ -27,9 +27,6 @@ abajo.
   `.gitignore` para el monorepo.
 - **Qué decidí yo:** usar Spec Kit. La IA eligió scripts de PowerShell porque trabajo en
   Windows, y la extensión de git para que cada spec tenga su rama numerada.
-- **Qué verifiqué:** que `specify init --force` no pisara mi `CLAUDE.md` (la IA lo respaldó y
-  lo comparó antes y después) y que los commits automáticos de Spec Kit quedaran apagados,
-  porque los commits los quiero controlar yo.
 
 ### 1. Constitución (`.specify/memory/constitution.md`)
 
@@ -277,6 +274,28 @@ abajo.
     la aplicación.
   - Esta vez la IA guardó los PID de lo que lanzó para cerrar solo sus procesos.
 
+### 11. Diseño, documentación y ajustes finales
+
+- **Qué aporté yo:** el código del diseño de cada pantalla (subida, dashboard, lista, detalle, login y
+  registro) como componentes de solo diseño, y los ajustes que vi al probar: fondo blanco en las
+  tablas del detalle, paginar los datos procesados de a 10 y la versión para celular.
+- **Qué hizo la IA:** pasó cada diseño a TypeScript separando la vista (props, sin lógica) de la
+  lógica (hooks de React Query), reemplazó el gráfico decorativo del dashboard por datos reales
+  (`GET /api/v1/uploads/activity-by-month`), el diagrama de AWS (`docs/arquitectura-aws.md` y
+  `.png`) y un tablero de Miro con toda la arquitectura, que después pasó al repo en Mermaid
+  (`docs/arquitectura-completa.md`).
+- **Qué se corrigió o descubrió en el camino:**
+  - **En el celular no se podía volver a la lista:** el CSS ocultaba el menú en pantallas
+    angostas y la tabla de uploads tenía 760 px de ancho mínimo. El menú pasó a una segunda fila
+    y la tabla se muestra como tarjetas, solo con CSS (`data-label` en cada celda).
+  - **El gráfico mostraba solo 2026:** comparaba el último año contra `último - 1`, que no tenía
+    datos, y los de 2024 quedaban afuera. Ahora compara los dos años más recientes con datos.
+  - **En Miro, los diagramas no se pueden mover después de crearlos**, y al actualizarlos se
+    corrían. Hubo que reacomodar el texto alrededor y crear los siguientes en su lugar final.
+  - **Corregí con la IA mi propio texto de "¿Qué aprendí?"**: había escrito que un mensaje
+    repetido en PROCESSING se ignora y que se hace *upsert* de las filas, y el código hace otra
+    cosa (ver punto 4).
+
 ## ¿Qué Generé con IA?
 
 ### Backend
@@ -296,12 +315,19 @@ abajo.
 - [x] Parser del CSV (`CsvParserService` con `csv-parse`, spec 004) y sus tests unitarios
 - [x] Worker, procesamiento, errores por fila y DLQ (spec 005), con tests unitarios y de integración
 - [x] Lista paginada y resultados (spec 006), con sus tests
-- [x] Diagramas del backend en Miro (para estudiar el código)
+- [x] Login con JWT (contexto `auth`, `scrypt`, rutas protegidas y datos separados por usuario),
+  resumen y actividad por mes para el dashboard (spec 007), con sus tests
+- [x] Diagramas: arquitectura en AWS (`docs/arquitectura-aws.md`) y arquitectura completa
+  (tablero de Miro y `docs/arquitectura-completa.md`)
+- [x] `sample-data.csv` (60 filas) y `sample-data-con-errores.csv`
 
 ### Frontend
 
-- [x] Frontend funcional en Next.js (login, registro, dashboard, lista, subida y detalle con
-  polling); el diseño visual queda para después
+- [x] Setup de Next.js con React Query, Axios y Tailwind, y la lógica de cada pantalla (login,
+  registro, dashboard, lista, subida con progreso y detalle con polling)
+- [x] Pasar a TypeScript el diseño de cada pantalla (el código del diseño lo traje yo) y
+  conectarlo con la lógica
+- [x] Gráfico del dashboard con datos reales, paginación de resultados y versión para celular
 
 ## ¿Qué Modifiqué o Corregí?
 
@@ -310,26 +336,53 @@ abajo.
 2. **Runner de tests:** la IA propuso Vitest y lo cambié por Jest. Eso obligó a bajar a
    TypeScript 6 y a ajustar el `tsconfig` para que los tests sigan chequeando tipos (ver
    bitácora, etapa 2).
+3. **Un plan que no era mío:** otra sesión de Claude Code abierta en paralelo generó un plan con
+   disco y Postgres como cola. Lo descarté y lo regeneré con LocalStack (etapa 5).
+4. **Si no se puede encolar, el upload queda FAILED:** elegí esa opción entre tres para que
+   ningún upload quede en PENDING para siempre (etapa 5).
+5. **La API también revisa el encabezado del CSV:** fue un punto medio que pedí para avisar al
+   instante si se subió el archivo equivocado (etapa 5).
+6. **La clave de idempotencia se validaba tarde** y dejaba archivos huérfanos en S3: pasó a un
+   value object que se valida al principio (etapa 5).
+7. **Un commit con tests fallando:** la IA verificaba con un `grep` del resumen. Desde ahí se
+   verifica con el código de salida de Jest (etapa 5).
+8. **Un test desmintió la investigación** sobre la causa de los números de línea corridos con
+   `\r\n`, y se corrigió el research (etapa 7).
+9. **Si ninguna fila es válida, FAILED y no COMPLETED,** y los errores por fila en su propia
+   tabla con su endpoint: decisiones mías para el worker (etapa 8).
+10. **Login con JWT en vez de `user-123`:** lo agregué para que la separación por usuario sea
+    real. La IA detectó que la Idempotency-Key tenía que dejar de ser global (etapa 10).
+11. **Versión para celular y gráfico del dashboard:** los dos problemas los encontré yo al
+    probar la app (etapa 11).
 
 ## ¿Qué Aprendí?
 
+En este proyecto aprendí a aplicar **Domain-Driven Design (DDD)**, estructurar el manejo funcional de errores con **`Either`** y gestionar flujos asíncronos resilientes mediante **colas y buckets S3 emulados con LocalStack (AWS)**.
+
 1. **Spec-Driven Development:**
-   - _(completar con tus palabras: qué es la constitución, por qué el spec no habla de
-     tecnología, para qué sirve separar spec, plan y tasks)_
+   - **Constitución:** Documento de reglas innegociables y estándares que rige el proyecto como fuente única de verdad.
+   - **Por qué el spec no habla de tecnología:** Porque describe el *qué* (reglas del negocio) y no el *cómo*, evitando acoplar el negocio a librerías o bases de datos.
+   - **Separar spec, plan y tasks:** La *Spec* define el requerimiento; el *Plan*, la estrategia técnica; y las *Tasks*, tareas atómicas y ejecutables para no codear a ciegas.
+
 2. **Either y manejo de errores:**
-   - _(completar con tus palabras: por qué los errores esperables viajan como valor y por
-     qué los controllers no tienen try/catch)_
+   - **Errores esperables como valor:** En vez de lanzar excepciones (`throw`), los fallos de negocio viajan explícitamente (`Left`/`Right`), obligando al compilador a exigir su tratamiento.
+   - **Controllers sin try/catch:** Como el caso de uso devuelve un `Either`, el controller solo desempaqueta el resultado: si es `Right` responde (200 o 202) y si es `Left` lo lanza. Un único manejador de errores central en Fastify traduce cada error al status HTTP (400, 401, 404, 409); lo inesperado responde 500 sin detalles.
+
 3. **Capas e inversión de dependencias:**
-   - _(completar con tus palabras: por qué el handler depende de `IDatabaseHealthChecker` y
-     no de Prisma, y qué hace el contenedor de Awilix al arrancar)_
+   - **`IDatabaseHealthChecker` y no Prisma:** Aplica inversión de dependencias (DIP) y arquitectura hexagonal. El handler depende de un contrato/interfaz, desacoplándose del ORM y facilitando mocks para tests.
+   - **Awilix al arrancar:** Es el contenedor IoC; al iniciar registra y resuelve el árbol de dependencias (repos, servicios, casos de uso) e inyecta todo automáticamente sin instanciar a mano.
+
 4. **Idempotencia:**
-   - _(completar con tus palabras: qué significa que procesar dos veces dé el mismo
-     resultado, por qué hace falta con una cola que entrega "al menos una vez" y cómo lo
-     resuelven PROCESSING → PROCESSING y el reemplazo de filas)_
-5. **DDD (aggregate root y value objects):**
-   - _(completar con tus palabras: por qué todo cambio de estado pasa por `Upload`, qué
-     diferencia hay entre un value object y una entidad, y para qué sirven `create` y
-     `restore`)_
+   - **En el procesamiento (worker), por `uploadId`:**
+     - **Upload ya terminado (`COMPLETED` o `FAILED`):** El mensaje es una entrega repetida. No se procesa de nuevo y se borra de la cola.
+     - **`PROCESSING → PROCESSING` se acepta como reintento:** Si el worker anterior se cayó a mitad de camino, el upload quedó en `PROCESSING`. El mensaje vuelve a la cola y otro intento lo retoma desde cero.
+     - **Reemplazo de filas, todo o nada:** Guardar las filas de un upload borra las del intento anterior e inserta las nuevas en una sola transacción, y lo mismo pasa con los errores por fila. Procesar dos veces da exactamente las mismas filas, nunca el doble.
+   - **El mensaje se borra al final:** Recién cuando el upload quedó en un estado final. Si algo falla antes, SQS lo reentrega. Al tercer intento el upload se marca `FAILED`, así nunca queda en `PROCESSING` para siempre.
+
+5. **DDD (Aggregate Root y Value Objects):**
+   - **Todo cambio pasa por `Upload`:** Al ser el Aggregate Root, es el guardián de las reglas del negocio e invariantes; nadie debe mutar su estado directamente.
+   - **Value Object vs Entidad:** La *Entidad* tiene identidad única y persistente en el tiempo (un ID). El *Value Object* no tiene ID, es inmutable y se define solo por sus valores.
+   - **`create` vs `restore`:** `create` instancia una entidad nueva validando sus reglas (devuelve un `Either`); `restore` reconstruye en memoria una entidad que ya existe en la BD, sin revalidar, porque ya se validó cuando se creó. Lo usan los mappers al leer de Prisma.
 
 ## Limitaciones Encontradas con IA
 
@@ -339,11 +392,18 @@ abajo.
   proyecto descartable antes de escribir el plan.
 - **Problemas que solo aparecen al ejecutar.** La incompatibilidad de Jest con un paquete ESM
   de Fastify no estaba prevista en el plan y apareció recién con el primer test HTTP.
+- **Hay que revisar cómo verifica.** Un commit salió con dos tests fallando porque la IA miraba
+  el resumen con un `grep` en vez del código de salida.
+- **Puede pisar cosas fuera de su tarea:** una segunda sesión abierta en paralelo reescribió un
+  spec, y en otro momento la IA cerró la API y el worker que yo tenía corriendo. Hay que mirar
+  los archivos cambiados antes de aceptar.
+- **También puede equivocarse al explicar.** Lo que escribí en "¿Qué aprendí?" lo revisé contra
+  el código: dos afirmaciones no coincidían (el *upsert* y los eventos de dominio) y las corregí.
 
 ## Tiempo Invertido
 
-- Setup y constitución: _(completar)_
-- Backend: _(completar)_
-- Frontend: _(completar)_
-- Debugging y ajustes: _(completar)_
-- **Total:** _(completar)_
+- Setup y constitución: 10min
+- Backend: 3hs
+- Frontend: 1h
+- Debugging y ajustes: 1h:30
+- **Total:** 5h:40
