@@ -22,9 +22,9 @@ describe("GetUploadRowErrorsController", () => {
   it("arma la query con el id de la ruta y responde 200 con los errores", async () => {
     const handler = new HandlerDouble(Either.right(VIEW));
 
-    const response = await new GetUploadRowErrorsController(handler).handle({ params: { id: "abc" }, query: {}, body: undefined, headers: {} });
+    const response = await new GetUploadRowErrorsController(handler).handle({ params: { id: "abc" }, query: {}, body: undefined, headers: {}, userId: "user-123" });
 
-    expect(handler.received).toEqual(new GetUploadRowErrorsQuery("abc"));
+    expect(handler.received).toEqual(new GetUploadRowErrorsQuery("abc", "user-123"));
     expect(response).toEqual({ statusCode: 200, body: VIEW });
   });
 
@@ -32,6 +32,6 @@ describe("GetUploadRowErrorsController", () => {
     const error = new NotFoundError("No existe");
     const controller = new GetUploadRowErrorsController(new HandlerDouble(Either.left(error)));
 
-    await expect(controller.handle({ params: {}, query: {}, body: undefined, headers: {} })).rejects.toBe(error);
+    await expect(controller.handle({ params: {}, query: {}, body: undefined, headers: {}, userId: "user-123" })).rejects.toBe(error);
   });
 });

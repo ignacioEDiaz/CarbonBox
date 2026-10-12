@@ -2,11 +2,9 @@ import { IQueryHandler } from "../../../shared/application/IQueryHandler";
 import { BaseController } from "../../../shared/infrastructure/http/BaseController";
 import { IHttpRequest } from "../../../shared/infrastructure/http/IHttpRequest";
 import { IHttpResponse } from "../../../shared/infrastructure/http/IHttpResponse";
+import { readUserId } from "../../../shared/infrastructure/http/readUserId";
 import { UploadListView } from "../../application/queries/handlers/ListUploadsQueryHandler";
 import { ListUploadsQuery } from "../../application/queries/objects/ListUploadsQuery";
-
-// Sin autenticación: como en la subida, el usuario sale de la puerta de entrada
-const USER_ID = "user-123";
 
 export class ListUploadsController extends BaseController {
   constructor(private readonly listUploadsQueryHandler: IQueryHandler<ListUploadsQuery, UploadListView>) {
@@ -14,7 +12,7 @@ export class ListUploadsController extends BaseController {
   }
 
   async handle(request: IHttpRequest): Promise<IHttpResponse> {
-    const query = new ListUploadsQuery(USER_ID, readText(request.query, "page"), readText(request.query, "limit"));
+    const query = new ListUploadsQuery(readUserId(request), readText(request.query, "page"), readText(request.query, "limit"));
     return this.respond(await this.listUploadsQueryHandler.execute(query));
   }
 }

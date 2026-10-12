@@ -1,0 +1,13 @@
+category,amount,unit,date
+Electricidad,1250.5,kWh,2024-01-15
+Gas natural,320,m3,2024-01-20
+,150,kWh,2024-01-22
+Agua,-45,m3,2024-01-25
+Diésel,12,5,litros,2024-02-01
+Nafta,80,litros,2024-02-31
+"Oficina, piso 2",430.75,kWh,2024-02-10
+Vuelos,abc,km,2024-02-12
+Residuos,95,,2024-02-14
+Electricidad,980,kWh,15/02/2024
+Gas natural,1e3,m3,2024-02-20
+Agua,60.5,m3,2024-02-28

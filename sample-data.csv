@@ -1,0 +1,61 @@
+category,amount,unit,date
+Electricidad,539.84,kWh,2024-01-01
+Gas natural,77.32,m3,2024-01-04
+Agua,79.86,m3,2024-01-07
+Diésel,71.29,litros,2024-01-10
+Nafta,170.05,litros,2024-01-13
+Vuelos,4578.56,km,2024-02-16
+Residuos,23.92,kg,2024-02-19
+Electricidad,800.56,kWh,2024-02-22
+Gas natural,34.25,m3,2024-02-25
+Agua,54.87,m3,2024-02-28
+Diésel,69.82,litros,2024-03-03
+Nafta,45.4,litros,2024-03-06
+Vuelos,5266.87,km,2024-03-09
+Residuos,208.44,kg,2024-03-12
+Electricidad,255.8,kWh,2024-03-15
+Gas natural,104.83,m3,2024-04-18
+Agua,77.15,m3,2024-04-21
+Diésel,570.19,litros,2024-04-24
+Nafta,181.59,litros,2024-04-27
+Vuelos,4941.16,km,2024-04-02
+Residuos,244.3,kg,2024-05-05
+Electricidad,146.15,kWh,2024-05-08
+Gas natural,346.22,m3,2024-05-11
+Agua,38.31,m3,2024-05-14
+Diésel,112.23,litros,2024-05-17
+Nafta,52.98,litros,2024-06-20
+Vuelos,3909.24,km,2024-06-23
+Residuos,205.87,kg,2024-06-26
+Electricidad,336.63,kWh,2024-06-01
+Gas natural,241.01,m3,2024-06-04
+Agua,78.48,m3,2024-07-07
+Diésel,242.27,litros,2024-07-10
+Nafta,173.37,litros,2024-07-13
+Vuelos,1034.63,km,2024-07-16
+Residuos,24.3,kg,2024-07-19
+Electricidad,372.46,kWh,2024-08-22
+Gas natural,278.55,m3,2024-08-25
+Agua,54.17,m3,2024-08-28
+Diésel,209.06,litros,2024-08-03
+Nafta,183.96,litros,2024-08-06
+Vuelos,5602.26,km,2024-09-09
+Residuos,81.94,kg,2024-09-12
+Electricidad,1208.02,kWh,2024-09-15
+Gas natural,285.62,m3,2024-09-18
+Agua,33.07,m3,2024-09-21
+Diésel,357.42,litros,2024-10-24
+Nafta,167.06,litros,2024-10-27
+Vuelos,10539.11,km,2024-10-02
+Residuos,185.07,kg,2024-10-05
+Electricidad,488.87,kWh,2024-10-08
+Gas natural,392.47,m3,2024-11-11
+Agua,18.58,m3,2024-11-14
+Diésel,268.33,litros,2024-11-17
+Nafta,232.0,litros,2024-11-20
+Vuelos,2078.22,km,2024-11-23
+Residuos,127.35,kg,2024-12-26
+Electricidad,135.67,kWh,2024-12-01
+Gas natural,273.92,m3,2024-12-04
+Agua,92.93,m3,2024-12-07
+Diésel,356.62,litros,2024-12-10

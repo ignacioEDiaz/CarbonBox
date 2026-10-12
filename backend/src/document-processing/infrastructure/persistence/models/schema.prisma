@@ -61,3 +61,11 @@ model RowError {
 
   @@index([uploadId])
 }
+
+// Cuentas para el login (spec 007). El email es único; nunca se guarda la contraseña, solo su hash.
+model User {
+  id           String   @id
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}

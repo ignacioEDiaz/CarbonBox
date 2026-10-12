@@ -21,7 +21,7 @@ describe("GetUploadResultsQueryHandler", () => {
     if (row.isLeft()) throw row.value;
     await activityDataRepository.saveForUpload(upload.id, [row.value]);
 
-    const result = await handler.execute(new GetUploadResultsQuery(upload.id));
+    const result = await handler.execute(new GetUploadResultsQuery(upload.id, "user-123"));
 
     expect(result.isRight() && result.value).toEqual({ data: [{ category: "Gas", amount: 30, unit: "m3", date: "2024-03-03" }] });
   });
@@ -29,7 +29,7 @@ describe("GetUploadResultsQueryHandler", () => {
   it("devuelve data vacío si el upload todavía no tiene filas", async () => {
     const { handler, upload } = await setup();
 
-    const result = await handler.execute(new GetUploadResultsQuery(upload.id));
+    const result = await handler.execute(new GetUploadResultsQuery(upload.id, "user-123"));
 
     expect(result.isRight() && result.value).toEqual({ data: [] });
   });
@@ -37,7 +37,7 @@ describe("GetUploadResultsQueryHandler", () => {
   it("devuelve NotFoundError si el upload no existe", async () => {
     const { handler } = await setup();
 
-    const result = await handler.execute(new GetUploadResultsQuery("no-existe"));
+    const result = await handler.execute(new GetUploadResultsQuery("no-existe", "user-123"));
 
     expect(result.isLeft() && result.value).toBeInstanceOf(NotFoundError);
   });

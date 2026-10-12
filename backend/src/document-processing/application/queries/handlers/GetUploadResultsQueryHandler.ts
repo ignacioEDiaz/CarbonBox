@@ -17,9 +17,9 @@ export class GetUploadResultsQueryHandler implements IQueryHandler<GetUploadResu
   ) {}
 
   async execute(query: GetUploadResultsQuery): Promise<Either<Error, UploadResultsView>> {
-    // Sin esto, un id inexistente respondería { data: [] } como si no tuviera filas
+    // Sin esto, un id inexistente o ajeno respondería { data: [] } como si no tuviera filas
     const upload = await this.uploadRepository.findById(query.uploadId);
-    if (upload === null) {
+    if (upload === null || upload.userId !== query.userId) {
       return Either.left(new NotFoundError(`No existe un upload con id ${query.uploadId}`));
     }
     const rows = await this.activityDataRepository.findByUploadId(query.uploadId);

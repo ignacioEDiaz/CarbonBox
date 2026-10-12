@@ -1,5 +1,5 @@
 import { ActivityData } from "../../src/document-processing/domain/entities/ActivityData";
-import { IActivityDataRepository } from "../../src/document-processing/domain/repositories/IActivityDataRepository";
+import { IActivityDataRepository, MonthlyRows } from "../../src/document-processing/domain/repositories/IActivityDataRepository";
 
 // Doble de IActivityDataRepository: guardar reemplaza las filas del upload, como la base
 export class InMemoryActivityDataRepository implements IActivityDataRepository {
@@ -11,5 +11,12 @@ export class InMemoryActivityDataRepository implements IActivityDataRepository {
 
   async findByUploadId(uploadId: string): Promise<ActivityData[]> {
     return this.rowsByUpload.get(uploadId) ?? [];
+  }
+
+  // Lo que devuelve countByMonthForUser en los tests: se carga a mano con monthlyRows.set
+  readonly monthlyRows = new Map<string, MonthlyRows[]>();
+
+  async countByMonthForUser(userId: string): Promise<MonthlyRows[]> {
+    return this.monthlyRows.get(userId) ?? [];
   }
 }

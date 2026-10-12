@@ -257,6 +257,26 @@ abajo.
 - **Qué se corrigió en el camino:** la IA cerró por error, además de sus procesos de prueba, la
   API y el worker que estuvieran corriendo en otras terminales (buscó por nombre de proceso).
 
+### 10. Spec 007: frontend y login
+
+- **Decisiones mías:** agregar login con JWT aunque la consigna no lo pide, para que "los uploads
+  del usuario" sean de un usuario real; un frontend sencillo y funcional para probar todo a
+  mano, porque el diseño lo voy a mandar después con imágenes.
+- **Qué hizo la IA:** el contexto `auth` (registro como command, login como query, `scrypt` y JWT
+  detrás de interfaces), las rutas de uploads protegidas con separación por usuario, el
+  resumen para el dashboard y el frontend en Next.js 16 con React Query, Axios y Tailwind. 344
+  tests del backend en verde, el frontend compila, y una prueba de punta a punta a través del
+  frontend con dos usuarios.
+- **Qué se corrigió o descubrió en el camino:**
+  - Los tipos de `jsonwebtoken` no aceptan un texto cualquiera como vencimiento ("1h") sin un
+    `as`: se pasó a segundos (`JWT_EXPIRES_IN_SECONDS`).
+  - La Idempotency-Key era global: con usuarios, otro podía recibir un upload ajeno reusando la
+    clave. Ahora responde 409.
+  - En la prueba manual, `curl` de Git Bash rompía el cuerpo con una "ñ" (problema de cómo
+    Windows pasa argumentos no ASCII); con el cuerpo en un archivo funciona. No era un bug de
+    la aplicación.
+  - Esta vez la IA guardó los PID de lo que lanzó para cerrar solo sus procesos.
+
 ## ¿Qué Generé con IA?
 
 ### Backend
@@ -280,7 +300,8 @@ abajo.
 
 ### Frontend
 
-- [ ] _(se completa en el spec 007)_
+- [x] Frontend funcional en Next.js (login, registro, dashboard, lista, subida y detalle con
+  polling); el diseño visual queda para después
 
 ## ¿Qué Modifiqué o Corregí?
 

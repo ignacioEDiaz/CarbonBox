@@ -10,4 +10,5 @@ export interface IHttpRequest {
   body: unknown;
   headers: unknown;
   file?: IHttpFile; // presente solo si la petición es multipart y trajo un archivo
+  userId?: string | null; // el usuario del token, en las rutas protegidas (adaptAuthenticatedRoute)
 }

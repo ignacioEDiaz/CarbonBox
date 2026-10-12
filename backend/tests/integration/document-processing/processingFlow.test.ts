@@ -4,6 +4,7 @@ import { IUploadRepository } from "../../../src/document-processing/domain/repos
 import { App } from "../../../src/main/App";
 import { buildContainer } from "../../../src/main/container";
 import { FileProcessingWorker } from "../../../src/workers/FileProcessingWorker";
+import { authHeader } from "../../support/authHeader";
 import { multipartBody } from "../../support/multipart";
 import { testConfig } from "../../support/testConfig";
 import { createTestAwsClients, createTestQueue, testBucket } from "../testAws";
@@ -37,7 +38,7 @@ async function upload(csv: string): Promise<string> {
   const response = await app.server.inject({
     method: "POST",
     url: "/api/v1/uploads",
-    ...(await multipartBody({ fileName: "datos.csv", content: csv })),
+    ...(await authenticatedMultipart(csv)),
   });
   return response.json().id;
 }
@@ -72,3 +73,9 @@ describe("procesamiento de punta a punta (API + worker, base de tests y LocalSta
     ]);
   });
 });
+
+// El cuerpo multipart con el header de una sesión válida
+async function authenticatedMultipart(content: string) {
+  const body = await multipartBody({ fileName: "datos.csv", content });
+  return { payload: body.payload, headers: { ...body.headers, ...authHeader() } };
+}

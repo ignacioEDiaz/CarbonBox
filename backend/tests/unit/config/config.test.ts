@@ -3,9 +3,10 @@ import { loadConfig } from "../../../src/config";
 const DATABASE_URL = "postgresql://u:p@h:5432/db";
 const S3_BUCKET = "mi-bucket";
 const SQS_QUEUE_URL = "http://localhost:4566/000000000000/uploads";
+const JWT_SECRET = "un-secreto-de-prueba-de-al-menos-32-caracteres";
 
 // Lo mínimo obligatorio: cada test agrega o pisa lo que prueba
-const REQUIRED = { DATABASE_URL, S3_BUCKET, SQS_QUEUE_URL };
+const REQUIRED = { DATABASE_URL, S3_BUCKET, SQS_QUEUE_URL, JWT_SECRET };
 
 describe("loadConfig", () => {
   it("lee el puerto y la URL de la base desde el entorno", () => {
@@ -82,5 +83,14 @@ describe("loadConfig: S3, SQS y subida", () => {
 
   it.each(["0", "-3", "abc"])("rechaza un tamaño máximo de %p MB", (megabytes) => {
     expect(() => loadConfig({ ...REQUIRED, UPLOAD_MAX_FILE_SIZE_MB: megabytes })).toThrow(/upload\.maxFileSizeMb/);
+  });
+
+  it("lee el secreto del JWT y usa una hora de vencimiento por defecto", () => {
+    expect(loadConfig(REQUIRED).jwt).toEqual({ secret: JWT_SECRET, expiresInSeconds: 3600 });
+    expect(loadConfig({ ...REQUIRED, JWT_EXPIRES_IN_SECONDS: "900" }).jwt.expiresInSeconds).toBe(900);
+  });
+
+  it.each([undefined, "corto"])("falla nombrando jwt.secret si JWT_SECRET es %p", (secret) => {
+    expect(() => loadConfig({ ...REQUIRED, JWT_SECRET: secret })).toThrow(/jwt\.secret/);
   });
 });

@@ -4,6 +4,7 @@ import { UploadStatus } from "../../../src/document-processing/domain/value-obje
 import { App } from "../../../src/main/App";
 import { buildContainer } from "../../../src/main/container";
 import { IFileStorage } from "../../../src/shared/infrastructure/storage/IFileStorage";
+import { authHeader } from "../../support/authHeader";
 import { multipartBody } from "../../support/multipart";
 import { testConfig } from "../../support/testConfig";
 import { createTestAwsClients, createTestQueue, testBucket } from "../testAws";
@@ -41,7 +42,7 @@ describe("subida de punta a punta (base de tests y LocalStack)", () => {
     const response = await app.server.inject({
       method: "POST",
       url: "/api/v1/uploads",
-      ...(await multipartBody({ fileName: "datos.csv", content: CSV })),
+      ...(await authenticatedMultipart(CSV)),
     });
 
     expect(response.statusCode).toBe(202);
@@ -57,3 +58,9 @@ describe("subida de punta a punta (base de tests y LocalStack)", () => {
     expect(Messages?.map((message) => message.Body)).toEqual([JSON.stringify({ uploadId: id })]);
   });
 });
+
+// El cuerpo multipart con el header de una sesión válida
+async function authenticatedMultipart(content: string) {
+  const body = await multipartBody({ fileName: "datos.csv", content });
+  return { payload: body.payload, headers: { ...body.headers, ...authHeader() } };
+}

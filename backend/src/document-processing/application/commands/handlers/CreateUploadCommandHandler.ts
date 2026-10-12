@@ -1,6 +1,6 @@
 import { ICommandHandler } from "../../../../shared/application/ICommandHandler";
 import { Either } from "../../../../shared/domain/Either";
-import { DuplicateIdempotencyKeyError, ValidationError } from "../../../../shared/domain/errors";
+import { ConflictError, DuplicateIdempotencyKeyError, ValidationError } from "../../../../shared/domain/errors";
 import { IMessagePublisher } from "../../../../shared/infrastructure/messaging/IMessagePublisher";
 import { IFileStorage } from "../../../../shared/infrastructure/storage/IFileStorage";
 import { Upload } from "../../../domain/entities/Upload";
@@ -41,7 +41,7 @@ export class CreateUploadCommandHandler implements ICommandHandler<CreateUploadC
     // Reintento con una clave ya usada: se devuelve el upload que ya existe
     const existing = idempotencyKey === null ? null : await this.uploadRepository.findByIdempotencyKey(idempotencyKey.value);
     if (existing !== null) {
-      return Either.right(toReceipt(existing));
+      return receiptFor(existing, command.userId);
     }
 
     const location = await this.fileStorage.save(content);
@@ -51,7 +51,7 @@ export class CreateUploadCommandHandler implements ICommandHandler<CreateUploadC
     }
     const winner = await this.saveOrFindWinner(uploadOrError.value);
     if (winner !== null) {
-      return Either.right(toReceipt(winner));
+      return receiptFor(winner, command.userId);
     }
     await this.publishOrMarkAsFailed(uploadOrError.value);
     return Either.right(toReceipt(uploadOrError.value));
@@ -120,6 +120,14 @@ function validateFile(file: UploadedFile | null): Either<ValidationError, { file
     return Either.left(headerOrError.value);
   }
   return Either.right({ fileName: fileNameOrError.value, content: file.content });
+}
+
+// Una clave ya usada devuelve ese upload, pero solo a su dueño: a otro usuario no se le muestra
+function receiptFor(upload: Upload, userId: string): Either<Error, UploadReceipt> {
+  if (upload.userId !== userId) {
+    return Either.left(new ConflictError("Esa clave de idempotencia ya se usó para otro upload"));
+  }
+  return Either.right(toReceipt(upload));
 }
 
 function toReceipt(upload: Upload): UploadReceipt {

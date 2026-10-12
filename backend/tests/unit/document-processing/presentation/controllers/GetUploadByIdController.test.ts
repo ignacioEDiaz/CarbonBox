@@ -30,7 +30,7 @@ class HandlerDouble implements IQueryHandler<GetUploadByIdQuery, UploadView> {
 }
 
 function request(params: unknown): IHttpRequest {
-  return { params, query: {}, body: undefined, headers: {} };
+  return { params, query: {}, body: undefined, headers: {}, userId: "user-123" };
 }
 
 describe("GetUploadByIdController", () => {
@@ -39,7 +39,7 @@ describe("GetUploadByIdController", () => {
 
     const response = await new GetUploadByIdController(handler).handle(request({ id: VIEW.id }));
 
-    expect(handler.received).toEqual(new GetUploadByIdQuery(VIEW.id));
+    expect(handler.received).toEqual(new GetUploadByIdQuery(VIEW.id, "user-123"));
     expect(response).toEqual({ statusCode: 200, body: VIEW });
   });
 
@@ -48,7 +48,7 @@ describe("GetUploadByIdController", () => {
 
     await new GetUploadByIdController(handler).handle(request(undefined));
 
-    expect(handler.received).toEqual(new GetUploadByIdQuery(""));
+    expect(handler.received).toEqual(new GetUploadByIdQuery("", "user-123"));
   });
 
   it("un left lanza el error para el manejador central", async () => {

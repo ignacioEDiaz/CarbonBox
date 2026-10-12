@@ -1,7 +1,12 @@
 import { Prisma, PrismaClient } from "../../../../generated/prisma/client";
 import { DuplicateIdempotencyKeyError } from "../../../../shared/domain/errors";
 import { Upload } from "../../../domain/entities/Upload";
-import { IUploadRepository, PageRequest, UploadPage } from "../../../domain/repositories/IUploadRepository";
+import {
+  IUploadRepository,
+  PageRequest,
+  StatusCounts,
+  UploadPage,
+} from "../../../domain/repositories/IUploadRepository";
 import { PrismaUploadMapper } from "../mappers/PrismaUploadMapper";
 
 export class PrismaUploadRepository implements IUploadRepository {
@@ -39,6 +44,16 @@ export class PrismaUploadRepository implements IUploadRepository {
       this.prismaClient.upload.count({ where: { userId } }),
     ]);
     return { uploads: records.map(PrismaUploadMapper.toDomain), total };
+  }
+
+  // Un GROUP BY status en la base, en vez de traer todos los uploads para contarlos
+  async countByStatusForUser(userId: string): Promise<StatusCounts> {
+    const groups = await this.prismaClient.upload.groupBy({ by: ["status"], where: { userId }, _count: { _all: true } });
+    const counts: StatusCounts = { PENDING: 0, PROCESSING: 0, COMPLETED: 0, FAILED: 0 };
+    for (const group of groups) {
+      counts[group.status] = group._count._all;
+    }
+    return counts;
   }
 }
 

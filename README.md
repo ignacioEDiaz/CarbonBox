@@ -18,7 +18,7 @@ cada parte tiene su spec, su plan y sus tareas en [`specs/`](specs/), y todas re
 | [004-parseo-y-validacion](specs/004-parseo-y-validacion/) | `CsvParserService`: filas válidas, errores por fila con línea y motivo, errores de archivo | ✅ Completo (lo conecta el 005) |
 | [005-worker-y-procesamiento](specs/005-worker-y-procesamiento/) | Worker (`npm run worker`): procesa el CSV, guarda filas y errores por fila, COMPLETED o FAILED, reintentos y DLQ | ✅ Completo |
 | [006-consultas](specs/006-consultas/) | Lista paginada de uploads y resultados de un upload | ✅ Completo |
-| 007 | Frontend | Pendiente |
+| [007-frontend-y-login](specs/007-frontend-y-login/) | Login con JWT, rutas protegidas por usuario y frontend en Next.js | ✅ Completo (el diseño visual llega después) |
 
 ## Requisitos
 
@@ -39,6 +39,18 @@ npm run db:deploy                  # crea las tablas (aplica las migraciones)
 npm run dev                        # API en http://localhost:3000
 npm run worker                     # en otra terminal: procesa los archivos subidos
 ```
+
+El frontend, en otra terminal (pide que la API esté corriendo):
+
+```bash
+cd frontend
+npm install
+npm run dev                        # http://localhost:3001: registrate, iniciá sesión y subí un CSV
+```
+
+Next reenvía `/api/*` a la API (`API_URL`, por defecto `http://localhost:3000`), así que no hace
+falta CORS. En `backend/.env` tiene que estar `JWT_SECRET` (mínimo 32 caracteres, ver
+`.env.example`).
 
 Comprobar que todo responde:
 
@@ -114,6 +126,10 @@ cuál falta.
 | GET | `/health` | `200 {"service":"up","database":"up"}`; `503` si la base no responde |
 | POST | `/api/v1/uploads` | `202 { id, status, fileName, createdAt }`. Multipart con el archivo en `file`; header opcional `Idempotency-Key` |
 | GET | `/api/v1/uploads/:id` | `200 { id, status, fileName, totalRows, processedRows, failedRows, errorMessage, createdAt, updatedAt }`; `404` si no existe |
+| POST | `/api/v1/auth/register` | `201 { id, email }` con `{ email, password }` (contraseña de 8 a 72 caracteres); `409` si el email ya existe |
+| POST | `/api/v1/auth/login` | `200 { token }` (JWT, vence en 1 h); `401` con credenciales incorrectas, sin decir cuál falló |
+| GET | `/api/v1/uploads/activity-by-month` | `200 { data: [{ year, month, rows }] }`: filas de actividad del usuario por mes (gráfico del dashboard). Cuenta filas en vez de sumar `amount`, porque cada categoría usa otra unidad |
+| GET | `/api/v1/uploads/summary` | `200 { total, pending, processing, completed, failed }` del usuario (dashboard) |
 | GET | `/api/v1/uploads?page=1&limit=10` | `200 { data, total, page, limit }`: los uploads del usuario, del más nuevo al más viejo. `page` ≥ 1 (por defecto 1), `limit` de 1 a 100 (por defecto 10); fuera de rango, `400` |
 | GET | `/api/v1/uploads/:id/results` | `200 { data: [{ category, amount, unit, date }] }`, ordenados por fecha y categoría; `404` si no existe |
 | GET | `/api/v1/uploads/:id/errors` | `200 { data: [{ line, message }] }`, los errores por fila ordenados por línea; `404` si no existe |
@@ -152,6 +168,15 @@ PENDING ──► PROCESSING ──► COMPLETED
 COMPLETED y FAILED son finales. Guardar las filas de un upload **reemplaza** las de un intento
 anterior en una sola transacción, así que procesar dos veces el mismo upload da el mismo
 resultado (idempotencia por `uploadId`).
+
+## Sesión (login con JWT)
+
+Todas las rutas de `/api/v1/uploads` piden `Authorization: Bearer <token>`; sin token válido
+responden `401`. Cada usuario ve y procesa solo sus uploads: uno ajeno responde `404`, igual
+que uno inexistente, para no confirmar que existe. Las contraseñas se guardan con `scrypt` y
+sal aleatoria (nunca en texto plano), y el token se firma con HS256 y un secreto de al menos 32
+caracteres. Los uploads creados antes de este cambio quedaron a nombre de `user-123`, que no es
+una cuenta: nadie los ve.
 
 ## Procesamiento (worker)
 

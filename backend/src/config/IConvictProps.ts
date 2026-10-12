@@ -17,4 +17,8 @@ export interface IConvictProps {
   upload: {
     maxFileSizeMb: number;
   };
+  jwt: {
+    secret: string;
+    expiresInSeconds: number;
+  };
 }

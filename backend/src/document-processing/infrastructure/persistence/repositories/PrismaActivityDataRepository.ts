@@ -1,6 +1,6 @@
 import { PrismaClient } from "../../../../generated/prisma/client";
 import { ActivityData } from "../../../domain/entities/ActivityData";
-import { IActivityDataRepository } from "../../../domain/repositories/IActivityDataRepository";
+import { IActivityDataRepository, MonthlyRows } from "../../../domain/repositories/IActivityDataRepository";
 import { PrismaActivityDataMapper } from "../mappers/PrismaActivityDataMapper";
 
 export class PrismaActivityDataRepository implements IActivityDataRepository {
@@ -21,5 +21,19 @@ export class PrismaActivityDataRepository implements IActivityDataRepository {
       orderBy: [{ date: "asc" }, { category: "asc" }, { id: "asc" }],
     });
     return records.map(PrismaActivityDataMapper.toDomain);
+  }
+
+  // Prisma no agrupa por partes de una fecha, así que va SQL. $queryRaw con template string pasa
+  // userId como parámetro (no lo concatena): no hay inyección de SQL.
+  async countByMonthForUser(userId: string): Promise<MonthlyRows[]> {
+    return this.prismaClient.$queryRaw<MonthlyRows[]>`
+      SELECT EXTRACT(YEAR FROM a."date")::int AS "year",
+             EXTRACT(MONTH FROM a."date")::int AS "month",
+             COUNT(*)::int AS "rows"
+      FROM "ActivityData" a
+      JOIN "Upload" u ON u."id" = a."uploadId"
+      WHERE u."userId" = ${userId}
+      GROUP BY 1, 2
+      ORDER BY 1, 2`;
   }
 }

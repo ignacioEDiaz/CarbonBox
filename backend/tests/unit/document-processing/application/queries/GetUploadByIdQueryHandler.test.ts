@@ -20,7 +20,7 @@ describe("GetUploadByIdQueryHandler", () => {
     const repository = new InMemoryUploadRepository();
     const upload = await savedUpload(repository);
 
-    const result = await new GetUploadByIdQueryHandler(repository).execute(new GetUploadByIdQuery(upload.id));
+    const result = await new GetUploadByIdQueryHandler(repository).execute(new GetUploadByIdQuery(upload.id, "user-123"));
 
     expect(result.isRight() && result.value).toEqual({
       id: upload.id,
@@ -42,7 +42,7 @@ describe("GetUploadByIdQueryHandler", () => {
       u.markAsCompleted({ totalRows: 10, processedRows: 8, failedRows: 2 });
     });
 
-    const result = await new GetUploadByIdQueryHandler(repository).execute(new GetUploadByIdQuery(upload.id));
+    const result = await new GetUploadByIdQueryHandler(repository).execute(new GetUploadByIdQuery(upload.id, "user-123"));
 
     expect(result.isRight() && [result.value.status, result.value.totalRows, result.value.processedRows]).toEqual([
       "COMPLETED",
@@ -58,14 +58,14 @@ describe("GetUploadByIdQueryHandler", () => {
       u.markAsFailed("archivo ilegible");
     });
 
-    const result = await new GetUploadByIdQueryHandler(repository).execute(new GetUploadByIdQuery(upload.id));
+    const result = await new GetUploadByIdQueryHandler(repository).execute(new GetUploadByIdQuery(upload.id, "user-123"));
 
     expect(result.isRight() && result.value.errorMessage).toBe("archivo ilegible");
   });
 
   it("un id que no existe devuelve NotFoundError", async () => {
     const result = await new GetUploadByIdQueryHandler(new InMemoryUploadRepository()).execute(
-      new GetUploadByIdQuery("no-existe"),
+      new GetUploadByIdQuery("no-existe", "user-123"),
     );
 
     expect(result.isLeft()).toBe(true);

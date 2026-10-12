@@ -1,7 +1,21 @@
-import { NotFoundError, ValidationError } from "../../../../../src/shared/domain/errors";
+import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from "../../../../../src/shared/domain/errors";
 import { toHttpError } from "../../../../../src/shared/infrastructure/http/errorHandler";
 
 describe("toHttpError", () => {
+  it("un UnauthorizedError es 401 UNAUTHORIZED con su mensaje", () => {
+    expect(toHttpError(new UnauthorizedError("Falta iniciar sesión"))).toEqual({
+      statusCode: 401,
+      body: { error: { type: "UNAUTHORIZED", message: "Falta iniciar sesión" } },
+    });
+  });
+
+  it("un ConflictError es 409 CONFLICT con su mensaje", () => {
+    expect(toHttpError(new ConflictError("Ya existe"))).toEqual({
+      statusCode: 409,
+      body: { error: { type: "CONFLICT", message: "Ya existe" } },
+    });
+  });
+
   it("un ValidationError es 400 VALIDATION_ERROR con su mensaje", () => {
     expect(toHttpError(new ValidationError("x"))).toEqual({
       statusCode: 400,

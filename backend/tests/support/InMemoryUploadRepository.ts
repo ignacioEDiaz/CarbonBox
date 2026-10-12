@@ -2,6 +2,7 @@ import { Upload } from "../../src/document-processing/domain/entities/Upload";
 import {
   IUploadRepository,
   PageRequest,
+  StatusCounts,
   UploadPage,
 } from "../../src/document-processing/domain/repositories/IUploadRepository";
 import { CallLog } from "./CallLog";
@@ -37,6 +38,14 @@ export class InMemoryUploadRepository implements IUploadRepository {
       .filter((upload) => upload.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime() || b.id.localeCompare(a.id));
     return { uploads: mine.slice(skip, skip + take).map(copy), total: mine.length };
+  }
+
+  async countByStatusForUser(userId: string): Promise<StatusCounts> {
+    const counts: StatusCounts = { PENDING: 0, PROCESSING: 0, COMPLETED: 0, FAILED: 0 };
+    for (const upload of this.all.filter((saved) => saved.userId === userId)) {
+      counts[upload.status.value] += 1;
+    }
+    return counts;
   }
 }
 

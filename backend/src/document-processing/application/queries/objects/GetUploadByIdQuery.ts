@@ -1,3 +1,6 @@
 export class GetUploadByIdQuery {
-  constructor(readonly id: string) {}
+  constructor(
+    readonly id: string,
+    readonly userId: string, // quien pregunta: un upload ajeno responde "no encontrado"
+  ) {}
 }
