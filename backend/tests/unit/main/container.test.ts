@@ -11,6 +11,8 @@ import { PrismaUploadRepository } from "../../../src/document-processing/infrast
 import { ProcessFileCommandHandler } from "../../../src/document-processing/application/commands/handlers/ProcessFileCommandHandler";
 import { FileProcessingService } from "../../../src/document-processing/application/services/FileProcessingService";
 import { PrismaRowErrorRepository } from "../../../src/document-processing/infrastructure/persistence/repositories/PrismaRowErrorRepository";
+import { GetUploadResultsController } from "../../../src/document-processing/presentation/controllers/GetUploadResultsController";
+import { ListUploadsController } from "../../../src/document-processing/presentation/controllers/ListUploadsController";
 import { buildContainer } from "../../../src/main/container";
 import { FileProcessingWorker } from "../../../src/workers/FileProcessingWorker";
 import { testConfig } from "../../support/testConfig";
@@ -51,6 +53,11 @@ describe("contenedor de dependencias", () => {
     expect(container.resolve("fileProcessingService")).toBeInstanceOf(FileProcessingService);
     expect(container.resolve("processFileCommandHandler")).toBeInstanceOf(ProcessFileCommandHandler);
     expect(container.resolve("fileProcessingWorker")).toBeInstanceOf(FileProcessingWorker);
+  });
+
+  it("resuelve los controllers de las consultas (spec 006)", () => {
+    expect(container.resolve("listUploadsController")).toBeInstanceOf(ListUploadsController);
+    expect(container.resolve("getUploadResultsController")).toBeInstanceOf(GetUploadResultsController);
   });
 
   it("resuelve los clientes del SDK de AWS", () => {
