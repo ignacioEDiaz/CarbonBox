@@ -14,7 +14,7 @@ const BASE: IConvictProps = {
   storage: { bucket: "test-bucket" },
   queue: { url: "http://localhost:4566/000000000000/test", visibilityTimeoutSeconds: 60 },
   upload: { maxFileSizeMb: 10 },
-  jwt: { secret: "secreto-de-los-tests-de-al-menos-32-caracteres", expiresIn: "1h" },
+  jwt: { secret: "secreto-de-los-tests-de-al-menos-32-caracteres", expiresInSeconds: 3600 },
 };
 
 export function testConfig(overrides: TestConfigOverrides = {}): IConvictProps {

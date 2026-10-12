@@ -107,11 +107,11 @@ const schema: convict.Schema<IConvictProps> = {
       env: "JWT_SECRET",
       sensitive: true,
     },
-    expiresIn: {
-      doc: "Vencimiento del token de sesión",
-      format: "required-string",
-      default: "1h",
-      env: "JWT_EXPIRES_IN",
+    expiresInSeconds: {
+      doc: "Vencimiento del token de sesión, en segundos",
+      format: "positive-int",
+      default: 3600,
+      env: "JWT_EXPIRES_IN_SECONDS",
     },
   },
 };

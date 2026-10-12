@@ -85,9 +85,9 @@ describe("loadConfig: S3, SQS y subida", () => {
     expect(() => loadConfig({ ...REQUIRED, UPLOAD_MAX_FILE_SIZE_MB: megabytes })).toThrow(/upload\.maxFileSizeMb/);
   });
 
-  it("lee el secreto del JWT y usa 1h de vencimiento por defecto", () => {
-    expect(loadConfig(REQUIRED).jwt).toEqual({ secret: JWT_SECRET, expiresIn: "1h" });
-    expect(loadConfig({ ...REQUIRED, JWT_EXPIRES_IN: "15m" }).jwt.expiresIn).toBe("15m");
+  it("lee el secreto del JWT y usa una hora de vencimiento por defecto", () => {
+    expect(loadConfig(REQUIRED).jwt).toEqual({ secret: JWT_SECRET, expiresInSeconds: 3600 });
+    expect(loadConfig({ ...REQUIRED, JWT_EXPIRES_IN_SECONDS: "900" }).jwt.expiresInSeconds).toBe(900);
   });
 
   it.each([undefined, "corto"])("falla nombrando jwt.secret si JWT_SECRET es %p", (secret) => {
