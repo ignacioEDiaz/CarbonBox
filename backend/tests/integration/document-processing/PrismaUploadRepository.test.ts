@@ -142,3 +142,39 @@ describe("PrismaUploadRepository: clave de idempotencia", () => {
     await expect(repository.save(upload)).resolves.toBeUndefined();
   });
 });
+
+describe("PrismaUploadRepository.findPageByUserId", () => {
+  // Un usuario propio por test: la base de tests no se limpia y los conteos tienen que ser exactos
+  async function saveUploadsFor(userId: string, count: number): Promise<Upload[]> {
+    const saved: Upload[] = [];
+    for (let index = 0; index < count; index++) {
+      const fileName = FileName.create(`datos-${index}.csv`);
+      if (fileName.isLeft()) throw fileName.value;
+      const upload = Upload.create({ fileName: fileName.value, fileUrl: `uploads/${index}.csv`, userId });
+      if (upload.isLeft()) throw upload.value;
+      await repository.save(upload.value);
+      saved.push(upload.value);
+      await new Promise((resolve) => setTimeout(resolve, 2)); // createdAt distintos
+    }
+    return saved;
+  }
+
+  it("devuelve una página del más nuevo al más viejo y el total", async () => {
+    const userId = `user-${randomUUID()}`;
+    const saved = await saveUploadsFor(userId, 5);
+
+    const firstPage = await repository.findPageByUserId(userId, { skip: 0, take: 2 });
+    const lastPage = await repository.findPageByUserId(userId, { skip: 4, take: 2 });
+
+    expect(firstPage.total).toBe(5);
+    expect(firstPage.uploads.map((upload) => upload.id)).toEqual([saved[4].id, saved[3].id]);
+    expect(lastPage.uploads.map((upload) => upload.id)).toEqual([saved[0].id]);
+  });
+
+  it("no incluye uploads de otros usuarios", async () => {
+    const userId = `user-${randomUUID()}`;
+    await saveUploadsFor(`user-${randomUUID()}`, 2);
+
+    expect(await repository.findPageByUserId(userId, { skip: 0, take: 10 })).toEqual({ uploads: [], total: 0 });
+  });
+});

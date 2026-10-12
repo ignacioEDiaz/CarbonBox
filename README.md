@@ -17,7 +17,8 @@ cada parte tiene su spec, su plan y sus tareas en [`specs/`](specs/), y todas re
 | [003-subir-archivo](specs/003-subir-archivo/) | Subida de CSV a S3, upload en PENDING, aviso en SQS (LocalStack), consulta por id | ✅ Completo |
 | [004-parseo-y-validacion](specs/004-parseo-y-validacion/) | `CsvParserService`: filas válidas, errores por fila con línea y motivo, errores de archivo | ✅ Completo (lo conecta el 005) |
 | [005-worker-y-procesamiento](specs/005-worker-y-procesamiento/) | Worker (`npm run worker`): procesa el CSV, guarda filas y errores por fila, COMPLETED o FAILED, reintentos y DLQ | ✅ Completo |
-| 006 y 007 | Consultas, frontend | Pendiente |
+| [006-consultas](specs/006-consultas/) | Lista paginada de uploads y resultados de un upload | ✅ Completo |
+| 007 | Frontend | Pendiente |
 
 ## Requisitos
 
@@ -113,6 +114,8 @@ cuál falta.
 | GET | `/health` | `200 {"service":"up","database":"up"}`; `503` si la base no responde |
 | POST | `/api/v1/uploads` | `202 { id, status, fileName, createdAt }`. Multipart con el archivo en `file`; header opcional `Idempotency-Key` |
 | GET | `/api/v1/uploads/:id` | `200 { id, status, fileName, totalRows, processedRows, failedRows, errorMessage, createdAt, updatedAt }`; `404` si no existe |
+| GET | `/api/v1/uploads?page=1&limit=10` | `200 { data, total, page, limit }`: los uploads del usuario, del más nuevo al más viejo. `page` ≥ 1 (por defecto 1), `limit` de 1 a 100 (por defecto 10); fuera de rango, `400` |
+| GET | `/api/v1/uploads/:id/results` | `200 { data: [{ category, amount, unit, date }] }`, ordenados por fecha y categoría; `404` si no existe |
 | GET | `/api/v1/uploads/:id/errors` | `200 { data: [{ line, message }] }`, los errores por fila ordenados por línea; `404` si no existe |
 
 La subida solo valida lo instantáneo: que haya archivo, que no esté vacío, que pese hasta

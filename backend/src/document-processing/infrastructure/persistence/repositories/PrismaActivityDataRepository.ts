@@ -16,7 +16,10 @@ export class PrismaActivityDataRepository implements IActivityDataRepository {
   }
 
   async findByUploadId(uploadId: string): Promise<ActivityData[]> {
-    const records = await this.prismaClient.activityData.findMany({ where: { uploadId } });
+    const records = await this.prismaClient.activityData.findMany({
+      where: { uploadId },
+      orderBy: [{ date: "asc" }, { category: "asc" }, { id: "asc" }],
+    });
     return records.map(PrismaActivityDataMapper.toDomain);
   }
 }

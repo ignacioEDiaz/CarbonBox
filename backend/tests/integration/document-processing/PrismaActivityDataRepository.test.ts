@@ -98,4 +98,26 @@ describe("PrismaActivityDataRepository", () => {
     expect(saveMs).toBeLessThan(2000);
     expect(readMs).toBeLessThan(1000);
   });
+
+  it("lee las filas ordenadas por fecha y después por categoría", async () => {
+    const uploadId = await savedUploadId();
+    const build = (category: string, date: string) => {
+      const result = ActivityData.create({ uploadId, category, amount: 1, unit: "kWh", date });
+      if (result.isLeft()) throw result.value;
+      return result.value;
+    };
+    await repository.saveForUpload(uploadId, [
+      build("Gas", "2024-03-02"),
+      build("Water", "2024-03-01"),
+      build("Electricity", "2024-03-02"),
+    ]);
+
+    const read = await repository.findByUploadId(uploadId);
+
+    expect(read.map((row) => [row.date, row.category])).toEqual([
+      ["2024-03-01", "Water"],
+      ["2024-03-02", "Electricity"],
+      ["2024-03-02", "Gas"],
+    ]);
+  });
 });

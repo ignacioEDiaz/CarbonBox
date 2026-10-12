@@ -244,6 +244,19 @@ abajo.
   worker necesita `try/catch` y la constitución no lo permite en el worker: el bucle quedó en
   `workers/index.ts` (arranque), y el worker solo procesa un mensaje y deja salir los errores.
 
+### 9. Spec 006: consultas
+
+- **Qué hizo la IA:** spec, plan y tareas, y con TDD la lista paginada
+  (`ListUploadsQueryHandler`) y los resultados (`GetUploadResultsQueryHandler`), con sus
+  controllers, rutas y tests unitarios, HTTP y de integración. 302 tests en verde y prueba a mano
+  con la API y el worker.
+- **Decisiones que tomó la IA y quedaron anotadas en el spec:** `page` por defecto 1, `limit` por
+  defecto 10 y máximo 100, y un valor inválido responde 400 en vez de corregirse en silencio.
+  La lista va del más nuevo al más viejo, desempatando por id para no repetir uploads entre
+  páginas; `data` y `total` se leen en la misma transacción.
+- **Qué se corrigió en el camino:** la IA cerró por error, además de sus procesos de prueba, la
+  API y el worker que estuvieran corriendo en otras terminales (buscó por nombre de proceso).
+
 ## ¿Qué Generé con IA?
 
 ### Backend
@@ -262,6 +275,7 @@ abajo.
   tests unitarios, HTTP y de integración contra LocalStack
 - [x] Parser del CSV (`CsvParserService` con `csv-parse`, spec 004) y sus tests unitarios
 - [x] Worker, procesamiento, errores por fila y DLQ (spec 005), con tests unitarios y de integración
+- [x] Lista paginada y resultados (spec 006), con sus tests
 - [x] Diagramas del backend en Miro (para estudiar el código)
 
 ### Frontend

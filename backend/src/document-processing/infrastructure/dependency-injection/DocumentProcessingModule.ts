@@ -2,13 +2,17 @@ import { asClass, AwilixContainer } from "awilix";
 import { CreateUploadCommandHandler } from "../../application/commands/handlers/CreateUploadCommandHandler";
 import { ProcessFileCommandHandler } from "../../application/commands/handlers/ProcessFileCommandHandler";
 import { GetUploadByIdQueryHandler } from "../../application/queries/handlers/GetUploadByIdQueryHandler";
+import { GetUploadResultsQueryHandler } from "../../application/queries/handlers/GetUploadResultsQueryHandler";
 import { GetUploadRowErrorsQueryHandler } from "../../application/queries/handlers/GetUploadRowErrorsQueryHandler";
+import { ListUploadsQueryHandler } from "../../application/queries/handlers/ListUploadsQueryHandler";
 import { CsvParserService } from "../../application/services/CsvParserService";
 import { FileProcessingService } from "../../application/services/FileProcessingService";
 import { FileProcessingWorker } from "../../../workers/FileProcessingWorker";
 import { CreateUploadController } from "../../presentation/controllers/CreateUploadController";
 import { GetUploadByIdController } from "../../presentation/controllers/GetUploadByIdController";
+import { GetUploadResultsController } from "../../presentation/controllers/GetUploadResultsController";
 import { GetUploadRowErrorsController } from "../../presentation/controllers/GetUploadRowErrorsController";
+import { ListUploadsController } from "../../presentation/controllers/ListUploadsController";
 import { SqsMessageConsumer } from "../messaging/SqsMessageConsumer";
 import { SqsMessagePublisher } from "../messaging/SqsMessagePublisher";
 import { PrismaActivityDataRepository } from "../persistence/repositories/PrismaActivityDataRepository";
@@ -38,5 +42,9 @@ export function registerDocumentProcessingModule(container: AwilixContainer): vo
     getUploadByIdController: asClass(GetUploadByIdController).singleton(),
     getUploadRowErrorsQueryHandler: asClass(GetUploadRowErrorsQueryHandler).singleton(),
     getUploadRowErrorsController: asClass(GetUploadRowErrorsController).singleton(),
+    listUploadsQueryHandler: asClass(ListUploadsQueryHandler).singleton(),
+    listUploadsController: asClass(ListUploadsController).singleton(),
+    getUploadResultsQueryHandler: asClass(GetUploadResultsQueryHandler).singleton(),
+    getUploadResultsController: asClass(GetUploadResultsController).singleton(),
   });
 }

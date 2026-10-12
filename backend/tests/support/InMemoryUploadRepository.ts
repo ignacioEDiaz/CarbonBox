@@ -1,5 +1,9 @@
 import { Upload } from "../../src/document-processing/domain/entities/Upload";
-import { IUploadRepository } from "../../src/document-processing/domain/repositories/IUploadRepository";
+import {
+  IUploadRepository,
+  PageRequest,
+  UploadPage,
+} from "../../src/document-processing/domain/repositories/IUploadRepository";
 import { CallLog } from "./CallLog";
 
 // Doble de IUploadRepository. Guarda una copia, como una base: si alguien cambia el upload y
@@ -26,6 +30,13 @@ export class InMemoryUploadRepository implements IUploadRepository {
   async findByIdempotencyKey(idempotencyKey: string): Promise<Upload | null> {
     const upload = this.all.find((saved) => saved.idempotencyKey === idempotencyKey);
     return upload === undefined ? null : copy(upload);
+  }
+
+  async findPageByUserId(userId: string, { skip, take }: PageRequest): Promise<UploadPage> {
+    const mine = this.all
+      .filter((upload) => upload.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime() || b.id.localeCompare(a.id));
+    return { uploads: mine.slice(skip, skip + take).map(copy), total: mine.length };
   }
 }
 
