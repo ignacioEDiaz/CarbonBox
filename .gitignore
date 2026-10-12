@@ -24,3 +24,7 @@ Thumbs.db
 
 # Cliente generado por Prisma (se regenera con npm install)
 backend/src/generated/
+
+# Archivos que genera Next al compilar
+*.tsbuildinfo
+frontend/next-env.d.ts
