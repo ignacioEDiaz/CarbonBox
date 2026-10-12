@@ -1,7 +1,7 @@
 import { Prisma, PrismaClient } from "../../../../generated/prisma/client";
 import { DuplicateIdempotencyKeyError } from "../../../../shared/domain/errors";
 import { Upload } from "../../../domain/entities/Upload";
-import { IUploadRepository } from "../../../domain/repositories/IUploadRepository";
+import { IUploadRepository, PageRequest, UploadPage } from "../../../domain/repositories/IUploadRepository";
 import { PrismaUploadMapper } from "../mappers/PrismaUploadMapper";
 
 export class PrismaUploadRepository implements IUploadRepository {
@@ -29,6 +29,16 @@ export class PrismaUploadRepository implements IUploadRepository {
   async findByIdempotencyKey(idempotencyKey: string): Promise<Upload | null> {
     const record = await this.prismaClient.upload.findUnique({ where: { idempotencyKey } });
     return record === null ? null : PrismaUploadMapper.toDomain(record);
+  }
+
+  // findMany y count en la misma transacción: data y total salen de la misma lectura.
+  // El id desempata dos uploads del mismo milisegundo, así ninguno se repite entre páginas.
+  async findPageByUserId(userId: string, { skip, take }: PageRequest): Promise<UploadPage> {
+    const [records, total] = await this.prismaClient.$transaction([
+      this.prismaClient.upload.findMany({ where: { userId }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], skip, take }),
+      this.prismaClient.upload.count({ where: { userId } }),
+    ]);
+    return { uploads: records.map(PrismaUploadMapper.toDomain), total };
   }
 }
 
