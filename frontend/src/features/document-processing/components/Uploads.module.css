@@ -1,5 +1,3 @@
-.page{position:relative;min-height:100vh;overflow:hidden;color:#fff;background:#04061f url(/bg-carbonbox.png) center top/cover no-repeat}
-
 .main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:48px 32px 96px;display:flex;flex-direction:column;gap:24px}
 .title{font-size:44px;line-height:1.05;font-weight:700;letter-spacing:-.035em;margin:0}
 

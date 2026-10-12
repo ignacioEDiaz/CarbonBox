@@ -1,50 +1,51 @@
 import { ActivityRow, RowError } from "../types/upload.types";
+import s from "./UploadDetail.module.css";
 
 export function ResultsTable({ rows }: { rows: ActivityRow[] }) {
-  if (rows.length === 0) return <p className="text-sm text-gray-500">No hay filas válidas.</p>;
   return (
-    <table className="w-full text-left text-sm">
-      <thead className="border-b text-gray-500">
-        <tr>
-          <th className="py-2">Categoría</th>
-          <th>Cantidad</th>
-          <th>Unidad</th>
-          <th>Fecha</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row, index) => (
-          <tr key={index} className="border-b">
-            <td className="py-2">{row.category}</td>
-            <td>{row.amount}</td>
-            <td>{row.unit}</td>
-            <td>{row.date}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <section className={s.panel}>
+      <h2 className={s.panelTitle}>Datos procesados</h2>
+      <div className={s.tableWrap}>
+        <table className={s.table}>
+          <thead>
+            <tr><th>Categoría</th><th>Cantidad</th><th>Unidad</th><th>Fecha</th></tr>
+          </thead>
+          <tbody>
+            {rows.map((row, index) => (
+              <tr key={index}>
+                <td className={s.strong}>{row.category}</td>
+                <td>{row.amount}</td>
+                <td>{row.unit}</td>
+                <td>{row.date}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
 // Los errores por fila: la línea del archivo y qué corregir
 export function RowErrorsTable({ errors }: { errors: RowError[] }) {
-  if (errors.length === 0) return null;
   return (
-    <table className="w-full text-left text-sm">
-      <thead className="border-b text-gray-500">
-        <tr>
-          <th className="py-2">Línea</th>
-          <th>Motivo</th>
-        </tr>
-      </thead>
-      <tbody>
-        {errors.map((error) => (
-          <tr key={error.line} className="border-b">
-            <td className="py-2">{error.line}</td>
-            <td>{error.message}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <section className={`${s.panel} ${s.panelError}`}>
+      <h2 className={s.panelTitle}>Filas con errores <span className={s.count}>{errors.length}</span></h2>
+      <div className={s.tableWrap}>
+        <table className={s.table}>
+          <thead>
+            <tr><th className={s.lineCol}>Línea</th><th>Motivo</th></tr>
+          </thead>
+          <tbody>
+            {errors.map((error) => (
+              <tr key={error.line}>
+                <td><span className={s.line}>{error.line}</span></td>
+                <td>{error.message}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }

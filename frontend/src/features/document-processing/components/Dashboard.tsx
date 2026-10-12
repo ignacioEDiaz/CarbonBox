@@ -2,7 +2,6 @@
 
 // Solo diseño: los números y el gráfico llegan por props desde la página
 import Link from "next/link";
-import { AppHeader } from "@/shared/components/AppHeader";
 import { ActivityChart, toLinePath } from "./activityChart";
 import s from "./Dashboard.module.css";
 
@@ -29,46 +28,42 @@ export function Dashboard({ total, completed, processing, failed, chart, error }
   ];
 
   return (
-    <div className={s.page}>
-      <AppHeader active="dashboard" />
-
-      <main className={s.main}>
-        <div className={s.top}>
-          <div>
-            <span className={s.badge}><span className={s.dot} />Resumen</span>
-            <h1 className={s.title}>Dashboard</h1>
-          </div>
-          <Link href="/uploads/new" className={s.cta}>Subir un CSV →</Link>
+    <main className={s.main}>
+      <div className={s.top}>
+        <div>
+          <span className={s.badge}><span className={s.dot} />Resumen</span>
+          <h1 className={s.title}>Dashboard</h1>
         </div>
+        <Link href="/uploads/new" className={s.cta}>Subir un CSV →</Link>
+      </div>
 
-        {error && <p className={s.error}>{error}</p>}
-        <div className={s.stats}>
-          {stats.map((stat) => (
-            <div key={stat.label} className={s.stat}>
-              <div className={s.statLabel}>
-                {stat.dot && <span className={s.statDot} style={{ background: stat.dot }} />}
-                {stat.label}
-              </div>
-              <div className={s.statValue} style={stat.color ? { color: stat.color } : undefined}>{stat.value}</div>
+      {error && <p className={s.error}>{error}</p>}
+      <div className={s.stats}>
+        {stats.map((stat) => (
+          <div key={stat.label} className={s.stat}>
+            <div className={s.statLabel}>
+              {stat.dot && <span className={s.statDot} style={{ background: stat.dot }} />}
+              {stat.label}
             </div>
-          ))}
-        </div>
-
-        <section className={s.panel}>
-          <div className={s.panelHead}>
-            <h2 className={s.panelTitle}>Registros de actividad por mes</h2>
-            {chart && (
-              <div className={s.legend}>
-                <span><i style={{ background: "#9bd9b8" }} />{chart.latestYear}</span>
-                <span><i style={{ background: "#6f76ff" }} />{chart.previousYear}</span>
-              </div>
-            )}
+            <div className={s.statValue} style={stat.color ? { color: stat.color } : undefined}>{stat.value}</div>
           </div>
-          {chart ? <ChartLines chart={chart} /> : <p className={s.empty}>Todavía no hay filas procesadas.</p>}
-          <div className={s.months}>{MONTHS.map((month) => <span key={month}>{month}</span>)}</div>
-        </section>
-      </main>
-    </div>
+        ))}
+      </div>
+
+      <section className={s.panel}>
+        <div className={s.panelHead}>
+          <h2 className={s.panelTitle}>Registros de actividad por mes</h2>
+          {chart && (
+            <div className={s.legend}>
+              <span><i style={{ background: "#9bd9b8" }} />{chart.latestYear}</span>
+              <span><i style={{ background: "#6f76ff" }} />{chart.previousYear}</span>
+            </div>
+          )}
+        </div>
+        {chart ? <ChartLines chart={chart} /> : <p className={s.empty}>Todavía no hay filas procesadas.</p>}
+        <div className={s.months}>{MONTHS.map((month) => <span key={month}>{month}</span>)}</div>
+      </section>
+    </main>
   );
 }
 

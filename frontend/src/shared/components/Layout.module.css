@@ -1,0 +1,2 @@
+/* El fondo común a todas las pantallas con sesión */
+.page{position:relative;min-height:100vh;overflow:hidden;color:#fff;background:#04061f url(/bg-carbonbox.png) center top/cover no-repeat}

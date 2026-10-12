@@ -3,15 +3,15 @@
 import { useActivityByMonth, useUploadsSummary } from "@/features/document-processing/api/uploadsApi";
 import { toActivityChart } from "@/features/document-processing/components/activityChart";
 import { Dashboard } from "@/features/document-processing/components/Dashboard";
-import { RequireAuth } from "@/shared/components/RequireAuth";
+import { Layout } from "@/shared/components/Layout";
 import { errorMessage } from "@/shared/lib/api-client";
 
 // Dashboard: pide el resumen y las filas por mes, y se los pasa al diseño
 export default function DashboardPage() {
   return (
-    <RequireAuth>
+    <Layout active="dashboard">
       <DashboardWithData />
-    </RequireAuth>
+    </Layout>
   );
 }
 

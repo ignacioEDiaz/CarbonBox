@@ -2,7 +2,6 @@
 
 // Solo diseño: la página le pasa la lista, la paginación y el estado de carga por props
 import Link from "next/link";
-import { AppHeader } from "@/shared/components/AppHeader";
 import { Upload, UploadStatus } from "../types/upload.types";
 import s from "./Uploads.module.css";
 
@@ -27,47 +26,43 @@ type UploadsProps = {
 
 export function Uploads({ uploads, page, totalPages, totalCount, isLoading, error, onPrev, onNext }: UploadsProps) {
   return (
-    <div className={s.page}>
-      <AppHeader active="uploads" />
+    <main className={s.main}>
+      <h1 className={s.title}>Mis uploads</h1>
 
-      <main className={s.main}>
-        <h1 className={s.title}>Mis uploads</h1>
-
-        <section className={s.panel}>
-          <div className={s.tableWrap}>
-            <table className={s.table}>
-              <thead>
-                <tr>
-                  <th>Archivo</th>
-                  <th>Estado</th>
-                  <th>Subido</th>
-                  <th>Filas procesadas</th>
-                  <th className={s.right}>Acciones</th>
+      <section className={s.panel}>
+        <div className={s.tableWrap}>
+          <table className={s.table}>
+            <thead>
+              <tr>
+                <th>Archivo</th>
+                <th>Estado</th>
+                <th>Subido</th>
+                <th>Filas procesadas</th>
+                <th className={s.right}>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {uploads.map((upload) => (
+                <tr key={upload.id}>
+                  <td className={s.file}>{upload.fileName}</td>
+                  <td><span className={`${s.status} ${STATUS[upload.status]}`}>{upload.status}</span></td>
+                  <td>{new Date(upload.createdAt).toLocaleString("es-AR")}</td>
+                  {/* Hasta que termina el procesamiento los conteos son null */}
+                  <td>{upload.processedRows === null ? "—" : `${upload.processedRows} de ${upload.totalRows}`}</td>
+                  <td className={s.right}><Link href={`/uploads/${upload.id}`} className={s.detail}>Ver detalle</Link></td>
                 </tr>
-              </thead>
-              <tbody>
-                {uploads.map((upload) => (
-                  <tr key={upload.id}>
-                    <td className={s.file}>{upload.fileName}</td>
-                    <td><span className={`${s.status} ${STATUS[upload.status]}`}>{upload.status}</span></td>
-                    <td>{new Date(upload.createdAt).toLocaleString("es-AR")}</td>
-                    {/* Hasta que termina el procesamiento los conteos son null */}
-                    <td>{upload.processedRows === null ? "—" : `${upload.processedRows} de ${upload.totalRows}`}</td>
-                    <td className={s.right}><Link href={`/uploads/${upload.id}`} className={s.detail}>Ver detalle</Link></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <TableMessage isLoading={isLoading} error={error} isEmpty={uploads.length === 0} />
-            <div className={s.pager}>
-              <button type="button" className={s.pageBtn} onClick={onPrev} disabled={page <= 1}>Anterior</button>
-              <span>Página {page} de {totalPages} ({totalCount} uploads)</span>
-              <button type="button" className={s.pageBtn} onClick={onNext} disabled={page >= totalPages}>Siguiente</button>
-            </div>
+              ))}
+            </tbody>
+          </table>
+          <TableMessage isLoading={isLoading} error={error} isEmpty={uploads.length === 0} />
+          <div className={s.pager}>
+            <button type="button" className={s.pageBtn} onClick={onPrev} disabled={page <= 1}>Anterior</button>
+            <span>Página {page} de {totalPages} ({totalCount} uploads)</span>
+            <button type="button" className={s.pageBtn} onClick={onNext} disabled={page >= totalPages}>Siguiente</button>
           </div>
-        </section>
-      </main>
-    </div>
+        </div>
+      </section>
+    </main>
   );
 }
 
