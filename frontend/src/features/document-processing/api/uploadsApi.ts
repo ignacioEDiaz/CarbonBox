@@ -3,6 +3,7 @@ import { useState } from "react";
 import { apiClient } from "@/shared/lib/api-client";
 import {
   ActivityRow,
+  MonthlyRows,
   isFinalStatus,
   Upload,
   UploadPage,
@@ -17,6 +18,13 @@ export function useUploadsSummary() {
   return useQuery({
     queryKey: ["uploads", "summary"],
     queryFn: async () => (await apiClient.get<UploadsSummary>("/uploads/summary")).data,
+  });
+}
+
+export function useActivityByMonth() {
+  return useQuery({
+    queryKey: ["uploads", "activity-by-month"],
+    queryFn: async () => (await apiClient.get<{ data: MonthlyRows[] }>("/uploads/activity-by-month")).data.data,
   });
 }
 

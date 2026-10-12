@@ -24,6 +24,8 @@ export type ActivityRow = { category: string; amount: number; unit: string; date
 
 export type RowError = { line: number; message: string };
 
+export type MonthlyRows = { year: number; month: number; rows: number }; // month: 1 a 12
+
 // COMPLETED y FAILED no cambian más: ahí se corta el polling
 export function isFinalStatus(status: UploadStatus): boolean {
   return status === "COMPLETED" || status === "FAILED";

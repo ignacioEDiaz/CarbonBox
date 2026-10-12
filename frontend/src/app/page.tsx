@@ -1,11 +1,12 @@
 "use client";
 
-import { useUploadsSummary } from "@/features/document-processing/api/uploadsApi";
+import { useActivityByMonth, useUploadsSummary } from "@/features/document-processing/api/uploadsApi";
+import { toActivityChart } from "@/features/document-processing/components/activityChart";
 import { Dashboard } from "@/features/document-processing/components/Dashboard";
 import { RequireAuth } from "@/shared/components/RequireAuth";
 import { errorMessage } from "@/shared/lib/api-client";
 
-// Dashboard: pide el resumen y se lo pasa al diseño
+// Dashboard: pide el resumen y las filas por mes, y se los pasa al diseño
 export default function DashboardPage() {
   return (
     <RequireAuth>
@@ -16,6 +17,8 @@ export default function DashboardPage() {
 
 function DashboardWithData() {
   const { data, isPending, error } = useUploadsSummary();
+  const activity = useActivityByMonth();
+  const chart = toActivityChart(activity.data ?? []);
   if (isPending || error) {
     const placeholder = isPending ? "…" : "—";
     return (
@@ -24,6 +27,7 @@ function DashboardWithData() {
         completed={placeholder}
         processing={placeholder}
         failed={placeholder}
+        chart={chart}
         error={error ? errorMessage(error) : undefined}
       />
     );
@@ -35,6 +39,7 @@ function DashboardWithData() {
       completed={data.completed}
       processing={data.pending + data.processing}
       failed={data.failed}
+      chart={chart}
     />
   );
 }

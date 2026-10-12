@@ -128,6 +128,7 @@ cuál falta.
 | GET | `/api/v1/uploads/:id` | `200 { id, status, fileName, totalRows, processedRows, failedRows, errorMessage, createdAt, updatedAt }`; `404` si no existe |
 | POST | `/api/v1/auth/register` | `201 { id, email }` con `{ email, password }` (contraseña de 8 a 72 caracteres); `409` si el email ya existe |
 | POST | `/api/v1/auth/login` | `200 { token }` (JWT, vence en 1 h); `401` con credenciales incorrectas, sin decir cuál falló |
+| GET | `/api/v1/uploads/activity-by-month` | `200 { data: [{ year, month, rows }] }`: filas de actividad del usuario por mes (gráfico del dashboard). Cuenta filas en vez de sumar `amount`, porque cada categoría usa otra unidad |
 | GET | `/api/v1/uploads/summary` | `200 { total, pending, processing, completed, failed }` del usuario (dashboard) |
 | GET | `/api/v1/uploads?page=1&limit=10` | `200 { data, total, page, limit }`: los uploads del usuario, del más nuevo al más viejo. `page` ≥ 1 (por defecto 1), `limit` de 1 a 100 (por defecto 10); fuera de rango, `400` |
 | GET | `/api/v1/uploads/:id/results` | `200 { data: [{ category, amount, unit, date }] }`, ordenados por fecha y categoría; `404` si no existe |
